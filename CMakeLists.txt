@@ -19,7 +19,7 @@ limitations under the License.
 CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 
 
-project(k4ProjectTemplate LANGUAGES CXX)
+project(k4CEDViewer LANGUAGES CXX)
 
 # please keep this layout for version setting, used by the automatic tagging script
 set(PACKAGE_VERSION_MAJOR 0)
@@ -38,7 +38,7 @@ include(cmake/Key4hepConfig.cmake)
 
 include(GNUInstallDirs)
 
-add_subdirectory(k4ProjectTemplate)
+add_subdirectory(k4CEDViewer)
 
 include(CTest)
 if(BUILD_TESTING)

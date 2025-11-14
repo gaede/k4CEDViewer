@@ -18,16 +18,16 @@ limitations under the License.
 ]]
 add_test(NAME CreateExampleEventData
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-               COMMAND k4run k4ProjectTemplate/options/createExampleEventData.py)
+               COMMAND k4run k4CEDViewer/options/createExampleEventData.py)
 
 add_test(NAME ReadExampleEventData
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-               COMMAND k4run k4ProjectTemplate/options/readExampleEventData.py)
+               COMMAND k4run k4CEDViewer/options/readExampleEventData.py)
 set_property(TEST ReadExampleEventData APPEND PROPERTY DEPENDS CreateExampleEventData)
 
 add_test(NAME HelloWorldAlg
                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-               COMMAND k4run k4ProjectTemplate/options/createHelloWorld.py)
+               COMMAND k4run k4CEDViewer/options/createHelloWorld.py)
 
 # For LD_LIBRARY_PATH
 # ${PROJECT_BINARY_DIR}                                         # The files <plugins>.components and <plugins>.confdb are here

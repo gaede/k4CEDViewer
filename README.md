@@ -69,19 +69,19 @@ export PYTHONPATH=$PWD/install/python:$PYTHONPATH
 and then run the examples like this:
 
 ``` bash
-k4run k4ProjectTemplate/options/createHelloWorld.py
-k4run k4ProjectTemplate/options/createExampleEventData.py
+k4run k4CEDViewer/options/createHelloWorld.py
+k4run k4CEDViewer/options/createExampleEventData.py
 ```
 
 ### Changing the name
 
 Typically for a new project we would like to use a different name than
-k4ProjectTemplate. The change of names can be done quickly running these
+k4CEDViewer. The change of names can be done quickly running these
 commands (change `k4CoolProject` to its name):
 
 ``` bash
-mv k4ProjectTemplate k4CoolProject
-git ls-files | xargs sed -i 's/k4ProjectTemplate/k4CoolProject/g'
+mv k4CEDViewer k4CoolProject
+git ls-files | xargs sed -i 's/k4CEDViewer/k4CoolProject/g'
 ```
 
 After this, your project should be ready to run
