@@ -69,11 +69,12 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
     k4GaudiCED::newEvent(this) ;
 
     dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
+
     
     // define some consts that should be made parameters ...
     bool usingParticleGun = false; 
     int layer = m_layer ;
-    bool drawMCParticlesCreatedInSimulation = true ;
+    bool drawMCParticlesCreatedInSimulation = false ;
     double mcpECut = 0.01 ;
     double _helix_max_r = 2000. ;
     double _helix_max_z = 2500. ;
@@ -81,7 +82,15 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
     int marker = 3 ;
     int size = 3 ;
     float scaleLineThickness =1. ;
-      
+    bool _surfaces = false ;
+
+    //------------------------
+
+    k4GaudiCED::drawDD4hepDetector(theDetector, _surfaces, {} ) ;
+
+    //------------------------
+
+
     for(unsigned i=0; i< col.size() ; i++){
 
       auto mcp = col[i]  ;

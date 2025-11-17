@@ -212,7 +212,6 @@ class k4GaudiCED {
      * author: Thorben Quast, CERN Summer Student 2015
      * date: 31/07/2015
     */
-     //TODO: rename
     static void drawDD4hepDetector( dd4hep::Detector& theDetector, bool _surfaces, StringVec _detailled);
 
 private:
