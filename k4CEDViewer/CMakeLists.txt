@@ -18,12 +18,30 @@ limitations under the License.
 ]]
 
 file(GLOB _plugin_sources src/components/*.cpp)
-gaudi_add_module(k4CEDViewerPlugins
+
+#find_package(DD4hep REQUIRED)
+ 
+
+FIND_PACKAGE( MarlinUtil 1.2 REQUIRED )
+FIND_PACKAGE( CED REQUIRED )
+
+FOREACH( pkg  MarlinUtil CED)
+    IF( ${pkg}_FOUND )
+        INCLUDE_DIRECTORIES( SYSTEM ${${pkg}_INCLUDE_DIRS} )
+        LINK_LIBRARIES( ${${pkg}_LIBRARIES} )
+        ADD_DEFINITIONS ( ${${pkg}_DEFINITIONS} )
+    ENDIF()
+ENDFOREACH()
+	       
+Gaudi_add_module(k4CEDViewerPlugins
                  SOURCES ${_plugin_sources}
                  LINK Gaudi::GaudiKernel
-                      k4FWCore::k4FWCore
-                      EDM4HEP::edm4hep
-                      )
+                 k4FWCore::k4FWCore
+		 DD4hep::DDCore
+                 DD4hep::DDG4
+                 DD4hep::DDRec
+                 EDM4HEP::edm4hep
+                 )
 
 install(TARGETS k4CEDViewerPlugins
   EXPORT ${CMAKE_PROJECT_NAME}Targets
