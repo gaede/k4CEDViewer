@@ -8,7 +8,6 @@
 #ifndef k4GaudiCED_h
 #define k4GaudiCED_h 1
 
-//#include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/CommonMessaging.h"
 
 #include <cmath>
@@ -17,17 +16,14 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <functional>
 
 
 typedef std::vector<std::string> StringVec ;
 
 #include "ced_cli.h"
 
-// #include <MarlinDrawUtil.h>
-// #include <Trajectory.h>
-
-#include <ctime> //hauke
-
+#include <ctime> 
 
 //Includes for detector drawing
 #include "DD4hep/Detector.h"
@@ -37,137 +33,147 @@ typedef std::vector<std::string> StringVec ;
 #include "DDRec/Surface.h"
 
 
-//struct k4CEDMapParticleObject{const LCObject *obj;  void (*function)(const LCObject *);};
-//typedef std::map<const int, k4CEDMapParticleObject> k4CEDPickingMap;
-//typedef std::map<std::string, void (*)(const LCObject *)> k4CEDFunctionMap;
 
 
-// template <class T>
-//     void printDefault(const LCObject *raw){const T* obj = (T*) raw; std::cout << obj;}
+namespace k4ced{
 
-/** Bring the feature to print a LCIO-Objekt given by his ID. 
- *  To Provide this behavior it is required to register all ids first. 
- *  This is an Singelton Class, use it with getInstance(). 
- *  @author Hauke Hoelbe (DESY)
- *  @version May 2010 
+  const unsigned IDFactor = 1000000 ;
+
+
+  typedef std::function<void(unsigned)> printfun ;
+  typedef std::map<unsigned, printfun> PickingMap ;
+
+  /// helper class for printing picked objects from EDM4hep collections
+
+  template <class T>
+  struct PrintEDM4hep{
+    
+    PrintEDM4hep(const T& col ) : _col(col) {} 
+    
+    void operator()(unsigned index ){
+      
+      std::cout << " --- object at index: " << index  << std::endl ; 
+      std::cout <<  _col[ index ]      << "\n"
+		<< " -------" << std::endl ;
+    }
+  private:
+
+    const T& _col = {} ;
+  } ;
+
+
+  
+
+/**
+ *  This is an Singelton Class, use it with instance(). 
+ *  @author F. Gaede (DESY)
+ *  @version Nov 2025 
  */
-class k4CEDPickingHandler{
-    private:
-        /** The pointer to the k4CEDPickingHandler Objekt 
-         */
-        static k4CEDPickingHandler *instance;
+  class PickingHandler{
+    
 
-        /** In this map the id and the k4CEDMapParticleObject is stored. k4CEDMapParticleObject contains a pointer to the LCIO-Object and a function pointer 
-         * to print the LCIO-Object 
-         */
-//       static k4CEDPickingMap map;
+  private: 
+    PickingHandler() {} //is not allow to instance this
+    PickingHandler(const PickingHandler&) {}  //not allows to make copies
+    
 
-        /** This map contains the name of the collection or typeName and the function pointer of the function with should be called for this 
-          * collection/type. The Update method looks first for the collection name. This means when the collection name overwrite the typeName.
-         */
-  ///      static k4CEDFunctionMap funcMap;
-        //static struct termios orig_termios;
+  public:
+    PickingMap _map;
+    unsigned _colid = 0 ;
+    
+    /** Access to the only instance of this class
+     */
+    static PickingHandler& instance(){
+      static PickingHandler me;
+      return me ;
+    }
 
-        //k4CEDPickingHandler(); //is not allow to instance this
-        //k4CEDPickingHandler(const k4CEDPickingHandler& cc); //not allows to make copies
-        //~k4CEDPickingHandler();
+    unsigned colID() {
 
+      return ++_colid ;
+    }
+    
+    void clear(){
+      _map.clear() ;
+      _colid = 0 ;
+    }
 
-    public:
-        //class
-        /** Returns a pointer to the k4CEDPickingHandler object 
-         */
-        static k4CEDPickingHandler& getInstance();
+    
+    /** The print method for picking
+     */
+    void printObject(unsigned objID){
 
-        /** The default print method for all LCIO objects 
-         */
+      unsigned colID = objID / IDFactor ;
+      
+      std::cout << " printObject colID : " << colID << "  - index  = " <<  objID % IDFactor    << std::endl ;
+  
+      if( _map.find( colID ) != _map.end()  ){
 
-        template <class T>
-        static void defaultOutputFunction(const T& obj){
+      auto fun = _map[ colID ] ;
+      fun( ( objID % IDFactor  ) )  ;
+      }
+      
+    }
 
-          std::cout << " Picked object " << obj << " with id " << obj.id() <<  std::endl;
-          std::cout << obj;
-          // info() << " Picked object " << obj << " with id " << obj.id() <<  endmsg;
-          // info() << obj;
+    void registerFunctor(unsigned colID, printfun& fun ) {
 
-        }
+      std::cout << " registerFunctor for colID : " << colID << "   = " << &fun << std::endl ;
+      _map[ colID ] = fun ;
+    }
+     
 
-        /** Returns 1 if a key was been pressed, otherwise 0. 
-          * (Should be not part of k4CEDPickingHandler)
-        */
-        static int kbhit(void);
-        /*
-        static void set_conio_terminal_mode(void);
-        static void reset_terminal_mode(void);
-        static int getch(void);
-        */
+    /** Returns 1 if a key was been pressed, otherwise 0. 
+     * (Should be not part of PickingHandler)
+     */
+    static int kbhit(void);
 
+    ~PickingHandler() {
+    } ;
+  };
 
-//==        /** Register all LCIO-objects of the given LCEvent in the k4CEDPickingHandler map.
-//==          * This method iterate over all objects how are part of the LCEvent. <br>
-//==          * For each object, the collection name will searched in the funcMap. If this 
-//==          * collection name not found in the funcMap the typeName will be searched. 
-//==          * Now the object pointer, the object id and the given print function from the funcMap 
-//==          * will be stored in the the k4CEDPickingHandler map.<br> 
-//==          * If either the collection name and the typeName not found in the funcMap, this function is not 
-//==          * able to register the id of the object. The result is that print this object with his id is not possible. 
-//==         */
-//==        void update(LCEvent *);
-//==        
-//==        /** Print the LCIO-object given by his ID.
-//==         */
-//==        void printID(int);
-//==        
-//==        /** This method provides to register a (user defined) print function. 
-//==          * The first argument is the collection- or type-Name of the LCIO Object, the second a pointer of the print function.<br>
-//==          * Example: pHandler.registerFunction(LCIO::TRACKERHIT, &yourPrintFunction);
-//==         */
-//==        void registerFunction(std::string, void (*)(const LCObject *));
-};
-//end hauke hoelbe
 
 
 /** Singleton class to manage access to CED from several processors. All processors using CED
  *  have to use the methods init(), newEvent() and draw().
  */
 
-class k4GaudiCED {
+  class k4GaudiCED {
   
- public:
-  static k4GaudiCED* instance() ;
+  public:
+    static k4GaudiCED* instance() ;
   
 //  LCEvent* _currEvent=NULL;
   
-  /** To be called by every processor that uses CED in intit(). 
-   */
-  static void init(const void* proc ) ;
+    /** To be called by every processor that uses CED in intit(). 
+     */
+    static void init(const void* proc ) ;
 
-  static void newEvent(const void* proc ) ;
+    static void newEvent(const void* proc ) ;
 
-  /** To be called by every processor that uses CED in processEvent() after drawing everything. 
-   *  Actually draws the event. The flag waitForKeyboard indicates if after an event is drawn 
-   *  an input from the keyboard is expected (waitForKeyboard=1) or not (waitForKeyboard=0). 
-   */
-  static void draw(const void* proc , int waitForKeyboard=1 ) ;
+    /** To be called by every processor that uses CED in processEvent() after drawing everything. 
+     *  Actually draws the event. The flag waitForKeyboard indicates if after an event is drawn 
+     *  an input from the keyboard is expected (waitForKeyboard=1) or not (waitForKeyboard=0). 
+     */
+    static void draw(const void* proc , int waitForKeyboard=1 ) ;
   
 //==  static void getParticleFromID(int, LCEvent*);
 
-  /** Draw all objects in iterator range [first,last) which have a method getPosition() with the given color marker and 
-   *  size in the given layer (default 0). The template takes classes providing a class method 'getPosition()' 
-   *  as template argument.
-   */
-  template <class In>
-  static void drawObjectsWithPosition(In first, In last, int marker, int size ,unsigned int color, unsigned int layer=0, const char * /*PickingMessage*/="") {
-    while( first != last ) {
-      int id = (*first).id();
-      ced_hit_ID( (*first).getPosition()[0],
-		  (*first).getPosition()[1],
-		  (*first).getPosition()[2],
-		  marker,layer, size , color, id ) ;
+    /** Draw all objects in iterator range [first,last) which have a method getPosition() with the given color marker and 
+     *  size in the given layer (default 0). The template takes classes providing a class method 'getPosition()' 
+     *  as template argument.
+     */
+    template <class In>
+    static void drawObjectsWithPosition(In first, In last, int marker, int size ,unsigned int color, unsigned int layer=0, const char * /*PickingMessage*/="") {
+      while( first != last ) {
+	int id = (*first).id();
+	ced_hit_ID( (*first).getPosition()[0],
+		    (*first).getPosition()[1],
+		    (*first).getPosition()[2],
+		    marker,layer, size , color, id ) ;
       
-      ++first ;
-    }  
-  }
+	++first ;
+      }  
+    }
 
 
 // //hauke hoelbe
@@ -188,12 +194,12 @@ class k4GaudiCED {
 //   }
 
  
-  /** Draws a helix from the given point(x,y,z) for momentum(px,py,pz) in a B-field b (in Tesla) 
-   */
-  static void drawHelix(float b, float charge, float x, float y, float z,
-			float px, float py, float pz, int marker, int size, 
-			unsigned int col,
-			float rmin=10.0, float rmax=3000.0, float zmax=4500.0, unsigned int id = 0);
+    /** Draws a helix from the given point(x,y,z) for momentum(px,py,pz) in a B-field b (in Tesla) 
+     */
+    static void drawHelix(float b, float charge, float x, float y, float z,
+			  float px, float py, float pz, int marker, int size, 
+			  unsigned int col,
+			  float rmin=10.0, float rmax=3000.0, float zmax=4500.0, unsigned int id = 0);
 
 /*************************/
 //  static int getIDfromIndex(LCCollection* col, int index);
@@ -211,194 +217,195 @@ class k4GaudiCED {
      * 
      * author: Thorben Quast, CERN Summer Student 2015
      * date: 31/07/2015
-    */
+     */
     static void drawDD4hepDetector( dd4hep::Detector& theDetector, bool _surfaces, StringVec _detailled);
 
-private:
+  private:
     static int _int_count;
     static std::vector<std::string> _descs;
 
 
-protected:
+  protected:
 
-  //hauke hoelbe: 08.02.2010
-  k4GaudiCED() :  /**_currEvent(NULL),**/  _first(0) , _last(0) {}
+    //hauke hoelbe: 08.02.2010
+    k4GaudiCED() :  /**_currEvent(NULL),**/  _first(0) , _last(0) {}
   
-  static k4GaudiCED* _me ;
+    static k4GaudiCED* _me ;
   
-  const void* _first=NULL;
-  const void* _last=NULL;
+    const void* _first=NULL;
+    const void* _last=NULL;
 
-  // // helper method to draw hit collections by type
-  // static void drawHitCollectionsByType(LCEvent* event, const char* type, int marker, int size, 
-  // 				       unsigned int color, unsigned int layer=0) {
+    // // helper method to draw hit collections by type
+    // static void drawHitCollectionsByType(LCEvent* event, const char* type, int marker, int size, 
+    // 				       unsigned int color, unsigned int layer=0) {
     
-  //   try {
+    //   try {
       
-  //     std::vector< std::string >::const_iterator iter;
-  //     const std::vector< std::string >* ColNames = event->getCollectionNames();
+    //     std::vector< std::string >::const_iterator iter;
+    //     const std::vector< std::string >* ColNames = event->getCollectionNames();
       
-  //     for( iter = ColNames->begin() ; iter != ColNames->end() ; iter++) {
+    //     for( iter = ColNames->begin() ; iter != ColNames->end() ; iter++) {
 	
-  // 	LCCollection* col = event->getCollection( *iter ) ;
+    // 	LCCollection* col = event->getCollection( *iter ) ;
 	
-  // 	if ( col->getTypeName() == type ) {
+    // 	if ( col->getTypeName() == type ) {
 	  
-  // 	  if ( type == LCIO::SIMTRACKERHIT ) {
+    // 	  if ( type == LCIO::SIMTRACKERHIT ) {
 	    
-  // 	    LCTypedVector<SimTrackerHit> v(col);
-  // 	    drawObjectsWithPosition(v.begin(),v.end(),marker,size,color,layer);
+    // 	    LCTypedVector<SimTrackerHit> v(col);
+    // 	    drawObjectsWithPosition(v.begin(),v.end(),marker,size,color,layer);
 	    
-  // 	  }
+    // 	  }
 	  
-  // 	  if ( type == LCIO::SIMCALORIMETERHIT ) {
+    // 	  if ( type == LCIO::SIMCALORIMETERHIT ) {
 	    
-  // 	    LCTypedVector<SimCalorimeterHit> v(col);
-  // 	    drawObjectsWithPosition(v.begin(),v.end(),marker,size,color,layer);
+    // 	    LCTypedVector<SimCalorimeterHit> v(col);
+    // 	    drawObjectsWithPosition(v.begin(),v.end(),marker,size,color,layer);
 	    
-  // 	  }
+    // 	  }
 	  
-  // 	  if ( type == LCIO::TRACKERHIT ) {
+    // 	  if ( type == LCIO::TRACKERHIT ) {
 	    
-  // 	    LCTypedVector<TrackerHit> v(col);
-  // 	    drawObjectsWithPosition(v.begin(),v.end(),marker,size,color,layer);
+    // 	    LCTypedVector<TrackerHit> v(col);
+    // 	    drawObjectsWithPosition(v.begin(),v.end(),marker,size,color,layer);
 	    
-  // 	  }
+    // 	  }
 	  
-  // 	  if ( type == LCIO::CALORIMETERHIT ) {
+    // 	  if ( type == LCIO::CALORIMETERHIT ) {
 	    
-  // 	    LCTypedVector<CalorimeterHit> v(col);
-  // 	    drawObjectsWithPosition(v.begin(),v.end(),marker,size,color,layer);
+    // 	    LCTypedVector<CalorimeterHit> v(col);
+    // 	    drawObjectsWithPosition(v.begin(),v.end(),marker,size,color,layer);
 	    
-  // 	  }
-  // 	}
-  //     }
-  //   }    
-  //   catch(DataNotAvailableException &e){}
+    // 	  }
+    // 	}
+    //     }
+    //   }    
+    //   catch(DataNotAvailableException &e){}
 
-  // }
+    // }
 
-  // // FIXME: Not so elegant, refine! Use iterators, templates etc. See drawHitCollectionsByType(...).
-  // // helper method to draw hit collections by MC Contribution
-  // static void drawHitCollectionsByMCContribution(LCEvent* event, MCParticle* MCP, int marker, int size, 
-  //            unsigned int color, unsigned int layer=0) {
+    // // FIXME: Not so elegant, refine! Use iterators, templates etc. See drawHitCollectionsByType(...).
+    // // helper method to draw hit collections by MC Contribution
+    // static void drawHitCollectionsByMCContribution(LCEvent* event, MCParticle* MCP, int marker, int size, 
+    //            unsigned int color, unsigned int layer=0) {
     
-  //   std::vector< std::string >::const_iterator iter;
-  //   const std::vector< std::string >* ColNames = event->getCollectionNames();
+    //   std::vector< std::string >::const_iterator iter;
+    //   const std::vector< std::string >* ColNames = event->getCollectionNames();
     
-  //   for( iter = ColNames->begin() ; iter != ColNames->end() ; iter++) {
+    //   for( iter = ColNames->begin() ; iter != ColNames->end() ; iter++) {
       
-  //     LCCollection* col = event->getCollection( *iter ) ;
+    //     LCCollection* col = event->getCollection( *iter ) ;
       
-  //     if ( col->getTypeName() == LCIO::SIMTRACKERHIT ) {
+    //     if ( col->getTypeName() == LCIO::SIMTRACKERHIT ) {
 
-  //     int n = col->getNumberOfElements();
+    //     int n = col->getNumberOfElements();
   
-  //     for (int i = 0; i < n; ++i) {
+    //     for (int i = 0; i < n; ++i) {
 
-  //       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(col->getElementAt(i));
+    //       SimTrackerHit* hit = dynamic_cast<SimTrackerHit*>(col->getElementAt(i));
     
-  //       if (hit->getMCParticle() == MCP) {
-  //         double x = hit->getPosition()[0];
-  //         double y = hit->getPosition()[1];
-  //         double z = hit->getPosition()[2];
-  //           ced_hit_ID(x,y,z,marker, layer,size,color, MCP->id());
+    //       if (hit->getMCParticle() == MCP) {
+    //         double x = hit->getPosition()[0];
+    //         double y = hit->getPosition()[1];
+    //         double z = hit->getPosition()[2];
+    //           ced_hit_ID(x,y,z,marker, layer,size,color, MCP->id());
 
 
-  //       }
-  //     }
-  //     }
+    //       }
+    //     }
+    //     }
 
-  //     if ( col->getTypeName() == LCIO::SIMCALORIMETERHIT ) {
+    //     if ( col->getTypeName() == LCIO::SIMCALORIMETERHIT ) {
 
-  //     int n = col->getNumberOfElements();
+    //     int n = col->getNumberOfElements();
   
-  //     for (int i = 0; i < n; ++i) {
+    //     for (int i = 0; i < n; ++i) {
     
-  //       SimCalorimeterHit* hit = dynamic_cast<SimCalorimeterHit*>(col->getElementAt(i));
+    //       SimCalorimeterHit* hit = dynamic_cast<SimCalorimeterHit*>(col->getElementAt(i));
 
-  //       int nMC = hit->getNMCContributions();
+    //       int nMC = hit->getNMCContributions();
 
-  //       bool found = false;
-  //       for (int j = 0; j < nMC; ++j) {
-  //         if (hit->getParticleCont(j) == MCP) {
-  //           found = true; 
-  //           break;
-  //         }
-  //       }  
+    //       bool found = false;
+    //       for (int j = 0; j < nMC; ++j) {
+    //         if (hit->getParticleCont(j) == MCP) {
+    //           found = true; 
+    //           break;
+    //         }
+    //       }  
         
-  //       if (found) {
-  //         double x = hit->getPosition()[0];
-  //         double y = hit->getPosition()[1];
-  //         double z = hit->getPosition()[2];
-  //           ced_hit_ID(x,y,z,marker,layer,size,color, MCP->id());
-  //       }
-  //     }
-  //     }
-  //   }
-  // }
-} ;
+    //       if (found) {
+    //         double x = hit->getPosition()[0];
+    //         double y = hit->getPosition()[1];
+    //         double z = hit->getPosition()[2];
+    //           ced_hit_ID(x,y,z,marker,layer,size,color, MCP->id());
+    //       }
+    //     }
+    //     }
+    //   }
+    // }
+  } ;
 
-extern "C"
-void DDdraw_helix( float b, float charge, float x, float y, float z,
-		 float px, float py, float pz, 
-		 int marker, int size, unsigned int col, 
-		 float rmin=10.0, float rmax=3000.0, float zmax=4500.0, unsigned int id = 0) ;
+  extern "C"
+  void DDdraw_helix( float b, float charge, float x, float y, float z,
+		     float px, float py, float pz, 
+		     int marker, int size, unsigned int col, 
+		     float rmin=10.0, float rmax=3000.0, float zmax=4500.0, unsigned int id = 0) ;
 
 
 /******* HELPERS ********/
 
 //read out of the "_detailled" parameter
-bool detailledDrawing(StringVec _detailled, std::string detName);
+  bool detailledDrawing(StringVec _detailled, std::string detName);
 
 //Set of geometric parameters for initialization of a CEDGeoBox class object
-struct CEDGeoBox {
-  double  sizes[3] ;
-  double  center[3] ;
-  double rotate[3];
-};
+  struct CEDGeoBox {
+    double  sizes[3] ;
+    double  center[3] ;
+    double rotate[3];
+  };
 //Set of geometric parameters for initialization of a CEDGeoTube class object
-struct CEDGeoTubeParams {
-  double Rmax; double Rmin; double inner_symmetry; double outer_symmetry; double phi0; double delta_phi; double delta_z; double z0; 
-  //boolean that decides if the GeoTube is drawn twice at two different zPositions
-  bool isBarrel;
-};
+  struct CEDGeoTubeParams {
+    double Rmax; double Rmin; double inner_symmetry; double outer_symmetry; double phi0; double delta_phi; double delta_z; double z0; 
+    //boolean that decides if the GeoTube is drawn twice at two different zPositions
+    bool isBarrel;
+  };
 
 //Convenient summary of both parameter sets above as (tracker) layers may be drawn as one tube or as a sequence of staves (-->GeoBox)
-struct LayerGeometry {
-  CEDGeoTubeParams tube{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,false};
-  std::vector<CEDGeoBox> staves{};
-};
+  struct LayerGeometry {
+    CEDGeoTubeParams tube{0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,false};
+    std::vector<CEDGeoBox> staves{};
+  };
 
 
 
-void getVisAttributes(dd4hep::DetElement det, unsigned &color, bool &visible);
+  void getVisAttributes(dd4hep::DetElement det, unsigned &color, bool &visible);
 
 /***detector draw helpers***/
 
 //converts the parameters in LayeredCalorimeterData given by the appropriate drivers
 //into those required by the CEDGeoTube
-CEDGeoTubeParams CalorimeterParameterConversion (dd4hep::rec::LayeredCalorimeterData *calo);
+  CEDGeoTubeParams CalorimeterParameterConversion (dd4hep::rec::LayeredCalorimeterData *calo);
 
 //converts the parameters in ZDiskPetalsData given by the appropriate drivers
 //into those required by the CEDGeoTube
-CEDGeoTubeParams PetalParameterConversion (std::vector<dd4hep::rec::ZDiskPetalsData::LayerLayout>::iterator thisLayer);
+  CEDGeoTubeParams PetalParameterConversion (std::vector<dd4hep::rec::ZDiskPetalsData::LayerLayout>::iterator thisLayer);
 
 //converts the parameters from a LayeredCalorimeterData layer given by the appropriate drivers
 //into those required by the CEDGeoTube
-CEDGeoTubeParams CalorimeterLayerParameterConversion(std::vector<dd4hep::rec::LayeredCalorimeterData::Layer>::iterator thisLayer);
+  CEDGeoTubeParams CalorimeterLayerParameterConversion(std::vector<dd4hep::rec::LayeredCalorimeterData::Layer>::iterator thisLayer);
 
 //converts the parameters from a FixedPadSizeTPCData given by the appropriate drivers
 //into those required by the CEDGeoTube
-CEDGeoTubeParams TPCParameterConversion(dd4hep::rec::FixedPadSizeTPCData *tpc);
+  CEDGeoTubeParams TPCParameterConversion(dd4hep::rec::FixedPadSizeTPCData *tpc);
 
 //converts the parameters from a ZPlanarData::LayerLayout layer given by the appropriate drivers
 //into those required by the CEDGeoBox (for drawing of staves) or by CEDGeoTube (for approximation of the set of staves into tubes)
-LayerGeometry TrackerLayerParameterConversion(std::vector<dd4hep::rec::ZPlanarData::LayerLayout>::iterator thisLayer);
+  LayerGeometry TrackerLayerParameterConversion(std::vector<dd4hep::rec::ZPlanarData::LayerLayout>::iterator thisLayer);
 
 //draws the given surfaces as a set of individual lines
-bool DrawSurfaces(const dd4hep::rec::SurfaceManager &surfMan, std::string detName, unsigned color, int layer);
+  bool DrawSurfaces(const dd4hep::rec::SurfaceManager &surfMan, std::string detName, unsigned color, int layer);
 
+} // end namespace
 
 #endif
 

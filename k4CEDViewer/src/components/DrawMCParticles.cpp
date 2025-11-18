@@ -30,7 +30,7 @@ using namespace k4ced ;
 
 struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticleCollection&)> {
   DrawMCParticles(const std::string& name, ISvcLocator* svcLoc)
-    : Consumer(name, svcLoc,  KeyValue("colName", {"MCParticle"}) ) {
+    : Consumer(name, svcLoc,  KeyValue("colName", {"MCParticles"}) ) {
 
     k4GaudiCED::init(this) ;
   }
@@ -57,16 +57,24 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
   Gaudi::Property<std::string> m_hcalEndcapName{this, "HcalEndcapName", "HcalEndcap" , "name of hcal endcap detector "};
 
 
-  Gaudi::Property<std::string> m_colName{this, "colName", "MyMCParticles" , "name of the MCPArticle collection "};
+  // need to define the colName also as a property to access it later 
+  Gaudi::Property<std::string> m_colName{this, "colName", "MyMCParticles" , "name of the MCParticle collection "};
   
   
   void operator()(const edm4hep::MCParticleCollection& col) const override {
 
 
-//    info() <<  " +++++++  drawing MCParticle collection : " <<  col << endmsg;
+
+    info() <<  " +++++++ gaudi info -  drawing MCParticle collection : " <<  col << endmsg;
     std::cout  <<  " +++++++  drawing MCParticle collection with " <<  col.size()  << " particles "<< std::endl;
 
+    
     k4GaudiCED::newEvent(this) ;
+
+
+    unsigned myColID = PickingHandler::instance().colID() * k4ced::IDFactor ;
+    printfun f =  PrintEDM4hep<edm4hep::MCParticleCollection>( col )  ;
+    PickingHandler::instance().registerFunctor( myColID/IDFactor , f ) ;
 
     dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
 
@@ -90,7 +98,7 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
 
     //------------------------
 
-
+    
     for(unsigned i=0; i< col.size() ; i++){
 
       auto mcp = col[i]  ;
@@ -127,21 +135,20 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
 
         if( std::fabs( charge ) > 0.0001  ) {
 
-	  std::vector<double> bFieldVector = { 0., 0., 3.5 } ;   // FIXME: get from dd4hep
-	  // theDetector.field().combinedMagnetic(Position(0,0,0), bFieldVector) ;
-
-	  
-	  double bField = bFieldVector[2] ;    /// FIXME:  / dd4hep::tesla;
+	  std::vector<double> bFieldVector(3) ;
+	  theDetector.field().combinedMagnetic(dd4hep::Position(0,0,0), &bFieldVector[0]) ;
+	  double bField = bFieldVector[2]  / dd4hep::tesla;
 
 	  debug() << "  drawing MCParticle helix for p_t "
 		    << sqrt(px*px+py*py)
 		    << endmsg ;
-            const int ml = marker | ( layer << CED_LAYER_SHIFT ) ;
-            //maximal extension of all charged tracks
-            double _hmr, _hmz;
-            switch(std::abs(mcp.getPDG() ) ){
-                case 13:
-                    _hmr = getCalorimeterParameters(theDetector, m_hcalBarrelName).r_inner + getCalorimeterParameters(theDetector, m_hcalBarrelName).delta_r;
+	  
+	  const int ml = marker | ( layer << CED_LAYER_SHIFT ) ;
+	  //maximal extension of all charged tracks
+	  double _hmr, _hmz;
+	  switch(std::abs(mcp.getPDG() ) ){
+	  case 13:
+	    _hmr = getCalorimeterParameters(theDetector, m_hcalBarrelName).r_inner + getCalorimeterParameters(theDetector, m_hcalBarrelName).delta_r;
                     _hmz = getCalorimeterParameters(theDetector, m_hcalEndcapName).z_0 + getCalorimeterParameters(theDetector, m_hcalEndcapName).delta_z;
                     break;
                 default:
@@ -151,7 +158,7 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
             k4GaudiCED::drawHelix( bField , charge, x, y, z,
 				   px, py, pz, ml , size*scaleLineThickness , 0x7af774  ,
 				   0.0,  _hmr ,
-				   _hmz, mcp.id().index ) ;
+				   _hmz,  myColID + mcp.id().index   );
 
         } else { // neutral
             int color  ;
@@ -177,7 +184,7 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
             //tracks with vertex outside the according calorimeter are not drawn, length is passed as 0
             ced_line_ID( x , y , z ,
                         x + length*px/p ,  y + length*py/p ,  z + length*pz/p ,
-			 layer  , size, color, mcp.id().index );
+			 layer  , size, color,   myColID + mcp.id().index  );
         }
     }
 

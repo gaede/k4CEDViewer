@@ -5,7 +5,7 @@
  @date   Nov 2025 
 ***********************************************************************************************/
 
-#ifndef k4GaudiCEDUtils"c_h
+#ifndef k4GaudiCEDUtils_h
 #define k4GaudiCEDUtils_h 1
 
 // --- DD4hep ---
@@ -21,7 +21,7 @@
 inline std::ostream& info()   { return std::cout ; }
 inline std::ostream& debug()  { return std::cout ; }
 inline std::ostream& warning(){ return std::cout ; }
-inline std::ostream& error()  { return std::cout ; }
+inline std::ostream& error()  { return std::cerr ; }
 
 
 namespace k4ced {

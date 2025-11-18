@@ -56,5 +56,5 @@ ApplicationMgr(TopAlg=algList,
                EvtSel="NONE",
                EvtMax=100,
                ExtSvc=svcList,
-               OutputLevel=DEBUG,
+               OutputLevel=INFO,
                )
