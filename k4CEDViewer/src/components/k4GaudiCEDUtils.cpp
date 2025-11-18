@@ -1,16 +1,52 @@
 #include "k4GaudiCEDUtils.h"
-
+#define endmsg std::endl
 
 namespace k4ced {
 
 
+  std::ostream& info()     {
+    if( k4ced::GlobalLog::instance().level() <= LogLevel::Info ){
+      std::cout <<  k4ced::GlobalLog::instance().name() << "  INFO "  ; 
+      return std::cout ;
+    }
+    return ( null_stream ) ;
+  }
+  std::ostream& debug()     {
+    if( k4ced::GlobalLog::instance().level() <= LogLevel::Debug ){
+      std::cout <<  k4ced::GlobalLog::instance().name() << "  DEBUG "  ; 
+      return std::cout ;
+    }
+    return ( null_stream ) ;
+  }
+  std::ostream& verbose()     {
+    if( k4ced::GlobalLog::instance().level() <= LogLevel::Verbose ){
+      std::cout <<  k4ced::GlobalLog::instance().name() << "  VERBOSE "  ; 
+      return std::cout ;
+    }
+    return ( null_stream ) ;
+  }
+  std::ostream& error()     {
+    if( k4ced::GlobalLog::instance().level() <= LogLevel::Error ){
+      std::cout <<  k4ced::GlobalLog::instance().name() << "  ERROR "  ; 
+      return std::cout ;
+    }
+    return ( null_stream ) ;
+  }
+  std::ostream& warning()     {
+    if( k4ced::GlobalLog::instance().level() <= LogLevel::Warning ){
+      std::cout <<  k4ced::GlobalLog::instance().name() << "  WARNING "  ; 
+      return std::cout ;
+    }
+    return ( null_stream ) ;
+  }
+ 
   
   CalorimeterDrawParams getCalorimeterParameters(dd4hep::Detector& theDetector, std::string name, bool selfCall ){ 
 
     CalorimeterDrawParams params;
     if (selfCall)
       name[1] = tolower(name[1]);
-    const std::vector< dd4hep::DetElement>& calorimeters     = theDetector.detectors( "calorimeter" ) ;
+    const std::vector< dd4hep::DetElement>& calorimeters  = theDetector.detectors( "calorimeter" ) ;
     dd4hep::DetElement calo;
     for( unsigned i=0,n=calorimeters.size() ; i<n ; ++i ){
       if ((std::string)calorimeters[i].name() == name){

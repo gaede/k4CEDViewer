@@ -16,13 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from Gaudi.Configuration import (DEBUG, INFO )
+from Gaudi.Configuration import (DEBUG, INFO , WARNING)
 from k4FWCore import ApplicationMgr
 from k4FWCore.parseArgs import parser
 from k4FWCore import IOSvc
 #from Configurables import ExampleConsumer, DrawMCParticles
 from Configurables import (GeoSvc,
-                           DrawMCParticles
+                           DrawMCParticles,
+                           EventDataSvc
                            )
 
 algList = []
@@ -37,9 +38,14 @@ reco_args = parser.parse_known_args()[0]
 compact_file = reco_args.compactFile   #// or get_compact_file_path(det_model)
 
 
+evtsvc = EventDataSvc("EventDataSvc")
+svcList.append(evtsvc)
+
+
+
 iosvc = IOSvc("IOSvc")
 iosvc.Input = "input_edm4hep.root"
-svcList.append(iosvc)
+#svcList.append(iosvc)
 
 
 geoSvc = GeoSvc("GeoSvc")
@@ -49,12 +55,12 @@ geoSvc.EnableGeant4Geo = False
 svcList.append(geoSvc)
 
 
-algList.append(  DrawMCParticles("my_draw_mcps", colName = "MCParticles" , layer="4" ) )
+algList.append(  DrawMCParticles("draw_mcps", colName = "MCParticles" , layer=4 , marker=3, size=3 ) )
 
 
 ApplicationMgr(TopAlg=algList,
                EvtSel="NONE",
                EvtMax=100,
                ExtSvc=svcList,
-               OutputLevel=INFO,
+               OutputLevel=WARNING,
                )

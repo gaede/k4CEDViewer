@@ -14,17 +14,57 @@
 #include "DD4hep/DD4hepUnits.h" 
 #include "DDRec/DetectorData.h"
 
-
 // workaround for Gaudi logging
-#define endmsg std::endl
+// #define endmsg std::endl
 
-inline std::ostream& info()   { return std::cout ; }
-inline std::ostream& debug()  { return std::cout ; }
-inline std::ostream& warning(){ return std::cout ; }
-inline std::ostream& error()  { return std::cerr ; }
 
 
 namespace k4ced {
+//  using endmsg = std::endl;
+
+// workaround for Gaudi logging
+  
+  typedef enum {
+    Verbose = 1,
+    Debug,
+    Info,
+    Warning,
+    Error 
+  } LogLevel ;
+  
+// in Gaudi:
+//  namespace MSG {
+//  enum Level { NIL = 0, VERBOSE, DEBUG, INFO, WARNING, ERROR, FATAL, ALWAYS, NUM_LEVELS };
+//}
+  
+  struct GlobalLog{
+
+    static GlobalLog& instance(){
+      static GlobalLog me ;
+      return me ;
+    }
+    unsigned& level() { return _level ; }
+
+    std::string& name() { return _name ; }
+    
+  private:
+    unsigned _level = 0 ;
+    std::string _name = "unknown" ;
+    
+  };
+
+  static std::ofstream null_stream("/dev/null") ;
+
+  
+  std::ostream& verbose()  ;
+  std::ostream& debug()    ;
+  std::ostream& info()     ;
+  std::ostream& warning()  ;
+  std::ostream& error()    ;
+  
+
+  
+
 
 //structure for calculating the track length of given particles
   struct CalorimeterDrawParams {

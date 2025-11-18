@@ -8,8 +8,6 @@
 #ifndef k4GaudiCED_h
 #define k4GaudiCED_h 1
 
-#include "GaudiKernel/CommonMessaging.h"
-
 #include <cmath>
 
 #include <vector>
@@ -33,7 +31,7 @@ typedef std::vector<std::string> StringVec ;
 #include "DDRec/Surface.h"
 
 
-
+#include "k4GaudiCEDUtils.h"
 
 namespace k4ced{
 
@@ -52,10 +50,11 @@ namespace k4ced{
     
     void operator()(unsigned index ){
       
-      std::cout << " --- object at index: " << index  << std::endl ; 
-      std::cout <<  _col[ index ]      << "\n"
-		<< " -------" << std::endl ;
+      info() << " --- object at index: " << index  << std::endl ; 
+      info() <<  _col[ index ]  ;
+      info() << " -------" << std::endl ;
     }
+
   private:
 
     const T& _col = {} ;
@@ -105,7 +104,7 @@ namespace k4ced{
 
       unsigned colID = objID / IDFactor ;
       
-      std::cout << " printObject colID : " << colID << "  - index  = " <<  objID % IDFactor    << std::endl ;
+      debug() << " printObject colID : " << colID << "  - index  = " <<  objID % IDFactor    << std::endl ;
   
       if( _map.find( colID ) != _map.end()  ){
 
@@ -117,7 +116,8 @@ namespace k4ced{
 
     void registerFunctor(unsigned colID, printfun& fun ) {
 
-      std::cout << " registerFunctor for colID : " << colID << "   = " << &fun << std::endl ;
+      debug()  << " registerFunctor for colID : " << colID << "   = " << &fun << std::endl ;
+
       _map[ colID ] = fun ;
     }
      

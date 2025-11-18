@@ -35,6 +35,8 @@
 #include "TColor.h"
 #include "TROOT.h"
 
+#define endmsg std::endl
+
 using namespace dd4hep;
 
 namespace k4ced {
@@ -47,9 +49,6 @@ namespace k4ced {
 
 //--------------------------------------------------------------------------------------------------------
 
-// void PickingHandler::registerFunction(std::string type, void (*printFunction)(const LCObject *)){
-//     funcMap.insert(std::make_pair(type,printFunction));
-// }
 
   int PickingHandler::kbhit(void) {
     //http://stackoverflow.com/questions/448944/c-non-blocking-keyboard-input#448982

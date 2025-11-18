@@ -30,26 +30,16 @@ using namespace k4ced ;
 
 struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticleCollection&)> {
   DrawMCParticles(const std::string& name, ISvcLocator* svcLoc)
-    : Consumer(name, svcLoc,  KeyValue("colName", {"MCParticles"}) ) {
+    : Consumer(name, svcLoc,  KeyValue("colName", {"MCParticle"}) ) {
 
     k4GaudiCED::init(this) ;
   }
-/**Helper struct for drawing collections*/
-  struct DrawParameters{
-    DrawParameters(const std::string& colName, int size, int marker, int layer ) :
-      ColName( colName ),
-      Size( size ),
-      Marker( marker ),
-      Layer( layer ) {
-    }
-    std::string ColName ;
-    int Size ;
-    int Marker ;
-    int Layer ;
-  };
+
   std::vector<DrawParameters> _drawParameters ;
   
-  Gaudi::Property<int> m_layer{this, "layer", 0 , "layer to draw MCParticles "};
+  Gaudi::Property<int> layer{ this, "layer" , 0 , "layer to draw MCParticles " };
+  Gaudi::Property<int> marker{this, "marker", 0 , "marker for drawming MCParticles " };
+  Gaudi::Property<int> size{  this, "size"  , 0 , "size for drawning  MCParticles " };
 
   Gaudi::Property<std::string> m_ecalBarrelName{this, "EcalBarrelName", "EcalBarrel" , "name of ecal barrel detector "};
   Gaudi::Property<std::string> m_ecalEndcapName{this, "EcalEndcapName", "EcalEndcap" , "name of ecal endcap detector "};
@@ -58,21 +48,26 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
 
 
   // need to define the colName also as a property to access it later 
-  Gaudi::Property<std::string> m_colName{this, "colName", "MyMCParticles" , "name of the MCParticle collection "};
+//  Gaudi::Property<std::string> m_colName{this, "colName", "MyMCParticles" , "name of the MCParticle collection "};
   
   
+//===========================================================================================
+
   void operator()(const edm4hep::MCParticleCollection& col) const override {
 
 
 
-    info() <<  " +++++++ gaudi info -  drawing MCParticle collection : " <<  col << endmsg;
-    std::cout  <<  " +++++++  drawing MCParticle collection with " <<  col.size()  << " particles "<< std::endl;
-
+    k4ced::GlobalLog::instance().level()  = msgSvc()->outputLevel() ;
+    k4ced::GlobalLog::instance().name()   = name() ;
     
     k4GaudiCED::newEvent(this) ;
 
 
+    info()  <<  " +++++++  drawing MCParticle collection with " <<  col.size()  << " particles "
+	    << " outputLevel = " <<   k4ced::GlobalLog::instance().level()  << endmsg ;
+
     unsigned myColID = PickingHandler::instance().colID() * k4ced::IDFactor ;
+
     printfun f =  PrintEDM4hep<edm4hep::MCParticleCollection>( col )  ;
     PickingHandler::instance().registerFunctor( myColID/IDFactor , f ) ;
 
@@ -81,14 +76,11 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
     
     // define some consts that should be made parameters ...
     bool usingParticleGun = false; 
-    int layer = m_layer ;
     bool drawMCParticlesCreatedInSimulation = false ;
     double mcpECut = 0.01 ;
     double _helix_max_r = 2000. ;
     double _helix_max_z = 2500. ;
 
-    int marker = 3 ;
-    int size = 3 ;
     float scaleLineThickness =1. ;
     bool _surfaces = false ;
 
@@ -99,10 +91,8 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
     //------------------------
 
     
-    for(unsigned i=0; i< col.size() ; i++){
+    for( edm4hep::MCParticle mcp : col ){
 
-      auto mcp = col[i]  ;
-      
       float charge = mcp.getCharge ();
         if(mcp.getGeneratorStatus() != 1 // do not draw unstable particles
            && usingParticleGun == false  // unless we are in particleGun mode
@@ -119,10 +109,9 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
 		 << endmsg ;
 	
 
-//	layer = ( layer > -1 ? layer : MCPARTICLE_LAYER ) ;
-//        this->drawParameters[np].Layer = layer ;
 	
-        k4GaudiCED::add_layer_description( m_colName.value() , layer );
+//        k4GaudiCED::add_layer_description( m_colName.value() , layer );
+        k4GaudiCED::add_layer_description( inputLocations(0)[0] , layer );
 
         double px = mcp.getMomentum()[0];
         double py = mcp.getMomentum()[1];
