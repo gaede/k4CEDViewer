@@ -369,6 +369,7 @@ namespace k4ced {
       dd4hep::rec::LayeredCalorimeterData* calo = nullptr;
       debug( ) << " ......processing " << detName << endmsg;  
       //try to get the appropriate extension
+      
       try{ 
 	calo = det.extension<dd4hep::rec::LayeredCalorimeterData>();
       } catch(const std::runtime_error& e){
@@ -416,13 +417,13 @@ namespace k4ced {
       debug( ) << " ......processing" <<  detName << endmsg; 
     
       try{ 
-	trkPlanar = det.extension<dd4hep::rec::ZPlanarData>();
+	trkPlanar = det.extension<dd4hep::rec::ZPlanarData>(false);
       } catch(const std::runtime_error&){
 	try{
-	  trkDisk = det.extension<dd4hep::rec::ZDiskPetalsData>();
+	  trkDisk = det.extension<dd4hep::rec::ZDiskPetalsData>(false);
 	}catch(const std::runtime_error&){
 	  try{
-	    trkTPC = det.extension<dd4hep::rec::FixedPadSizeTPCData>();
+	    trkTPC = det.extension<dd4hep::rec::FixedPadSizeTPCData>(false);
 	  } catch(const std::runtime_error&){
 	    debug( ) <<  detName 
 		     << " has no extension of type ZPlanarData/ZDiskPetalsData. "
@@ -498,10 +499,10 @@ namespace k4ced {
       dd4hep::rec::LayeredCalorimeterData* passiveCalo = nullptr;
       debug( ) << " ......processing " <<  detName << endmsg;  
       try{ 
-        passiveConical = det.extension<dd4hep::rec::ConicalSupportData>();
+        passiveConical = det.extension<dd4hep::rec::ConicalSupportData>(false);
       } catch(const std::runtime_error&){
 	try{
-	  passiveCalo = det.extension<dd4hep::rec::LayeredCalorimeterData>();
+	  passiveCalo = det.extension<dd4hep::rec::LayeredCalorimeterData>(false);
 	} catch(const std::runtime_error&){
 	  debug( ) <<  detName 
 		  << " has no extension of type ConicalSupportData/LayeredCalorimeterData. "

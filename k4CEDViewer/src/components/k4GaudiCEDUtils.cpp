@@ -83,10 +83,8 @@ namespace k4ced {
   }
 
 
-  double calculateTrackLength(std::string barrelName, std::string endcapName, dd4hep::Detector& theDetector, double x, double y, double z, double px, double py, double pz, double rel_X0){
+  double calculateTrackLength(const CalorimeterDrawParams& barrel, const CalorimeterDrawParams& endcap, double x, double y, double z, double px, double py, double pz, double rel_X0){
 
-    CalorimeterDrawParams barrel = getCalorimeterParameters(theDetector, barrelName);
-    CalorimeterDrawParams endcap = getCalorimeterParameters(theDetector, endcapName);
 
     if (barrel.delta_z == -1 || endcap.delta_z == -1) return 0;   //the case if the parameters could not be loaded properly
 
@@ -152,15 +150,15 @@ namespace k4ced {
 
 
 //get the outer extents of the tracker
-  double* getTrackerExtent(dd4hep::Detector& theDetector){
-    double* extent = new double[2];
-    extent[0] =theDetector.constant<double>("tracker_region_rmax")/dd4hep::mm;
-    extent[1] = theDetector.constant<double>("tracker_region_zmax")/dd4hep::mm;
-    return extent;
+  std::array<double, 2> getTrackerExtent(dd4hep::Detector& theDetector){
+    
+    double extent0 =theDetector.constant<double>("tracker_region_rmax")/dd4hep::mm;
+    double extent1 = theDetector.constant<double>("tracker_region_zmax")/dd4hep::mm;
+    return { extent0, extent1 } ;
   }
 
-  double* getYokeExtent(dd4hep::Detector& theDetector) {
-    double* extent = new double[2];
+  std::array<double, 2> getYokeExtent(dd4hep::Detector& theDetector) {
+    double extent0(0.),extent1(0.) ;
     const std::vector< dd4hep::DetElement>& calorimeters     = theDetector.detectors( "calorimeter" ) ;
     dd4hep::DetElement yoke;
     for( unsigned i=0,n=calorimeters.size() ; i<n ; ++i ){
@@ -175,15 +173,15 @@ namespace k4ced {
 	yokeGeo = yoke.extension<dd4hep::rec::LayeredCalorimeterData>() ;
       } catch(std::runtime_error& e){
 	info() <<  " cannot get detector data for  " << detName << " cannot draw ;-( "<< endmsg ;
-	extent[0] = extent[1] = 0;
-	return extent;
+	extent0 = extent1 = 0;
+	return { extent0, extent1 } ;
       }
       if (isYokeBarrel)
-	extent[0] = yokeGeo->extent[1]/dd4hep::mm;
+	extent0 = yokeGeo->extent[1]/dd4hep::mm;
       if (isYokeEndcap)
-	extent[1] = yokeGeo->extent[3]/dd4hep::mm;
+	extent1 = yokeGeo->extent[3]/dd4hep::mm;
     }
-    return extent;
+    return  { extent0, extent1 } ;
   }
 
 

@@ -24,6 +24,9 @@
 #include "k4GaudiCED.h"
 #include "k4GaudiCEDUtils.h"
 
+
+#include "DD4hep/DetType.h"
+
 using namespace k4ced ;
 
 #include <string>
@@ -47,9 +50,6 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
   Gaudi::Property<std::string> m_hcalEndcapName{this, "HcalEndcapName", "HcalEndcap" , "name of hcal endcap detector "};
 
 
-  // need to define the colName also as a property to access it later 
-//  Gaudi::Property<std::string> m_colName{this, "colName", "MyMCParticles" , "name of the MCParticle collection "};
-  
   
 //===========================================================================================
 
@@ -89,8 +89,24 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
     k4GaudiCED::drawDD4hepDetector(theDetector, _surfaces, {} ) ;
 
     //------------------------
+    // get some calorimeter parameters for drawing the lines and helices
 
+    // dd4hep::DetElement ecalBarrel =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL |  dd4hep::DetType::ELECTROMAGNETIC ), dd4hep::DetType::AUXILIARY )[0] ;
+    // dd4hep::DetElement ecalEndcap =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::ENDCAP |  dd4hep::DetType::ELECTROMAGNETIC ), dd4hep::DetType::AUXILIARY )[0] ;
+    // dd4hep::DetElement hcalBarrel =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL |  dd4hep::DetType::HADRONIC ), dd4hep::DetType::AUXILIARY )[0] ;
+    // dd4hep::DetElement hcalEndcap =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::ENDCAP |  dd4hep::DetType::HADRONIC ), dd4hep::DetType::AUXILIARY )[0] ;
+
+						    
+     
+    CalorimeterDrawParams ecalBarrelParams =  getCalorimeterParameters(theDetector, m_ecalBarrelName) ;
+    CalorimeterDrawParams ecalEndcapParams =  getCalorimeterParameters(theDetector, m_ecalEndcapName) ;
+    CalorimeterDrawParams hcalBarrelParams =  getCalorimeterParameters(theDetector, m_hcalBarrelName) ;
+    CalorimeterDrawParams hcalEndcapParams =  getCalorimeterParameters(theDetector, m_hcalEndcapName) ;
+     
     
+    
+
+    //-----------------------
     for( edm4hep::MCParticle mcp : col ){
 
       float charge = mcp.getCharge ();
@@ -123,57 +139,62 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
         double z = mcp.getVertex()[2] ;
 
         if( std::fabs( charge ) > 0.0001  ) {
-
+	  
 	  std::vector<double> bFieldVector(3) ;
 	  theDetector.field().combinedMagnetic(dd4hep::Position(0,0,0), &bFieldVector[0]) ;
 	  double bField = bFieldVector[2]  / dd4hep::tesla;
-
+	  
 	  debug() << "  drawing MCParticle helix for p_t "
-		    << sqrt(px*px+py*py)
-		    << endmsg ;
+		  << sqrt(px*px+py*py)
+		  << endmsg ;
 	  
 	  const int ml = marker | ( layer << CED_LAYER_SHIFT ) ;
-	  //maximal extension of all charged tracks
-	  double _hmr, _hmz;
-	  switch(std::abs(mcp.getPDG() ) ){
-	  case 13:
-	    _hmr = getCalorimeterParameters(theDetector, m_hcalBarrelName).r_inner + getCalorimeterParameters(theDetector, m_hcalBarrelName).delta_r;
-                    _hmz = getCalorimeterParameters(theDetector, m_hcalEndcapName).z_0 + getCalorimeterParameters(theDetector, m_hcalEndcapName).delta_z;
-                    break;
-                default:
-                    _hmr = _helix_max_r;
-                    _hmz = _helix_max_z;
-            }
-            k4GaudiCED::drawHelix( bField , charge, x, y, z,
-				   px, py, pz, ml , size*scaleLineThickness , 0x7af774  ,
-				   0.0,  _hmr ,
-				   _hmz,  myColID + mcp.id().index   );
-
+	  
+	  //maximal extension of all charged tracks - use ecal for all but muons
+	  
+	  double _hmr = ecalBarrelParams.r_inner + ecalBarrelParams.delta_r ; 
+	  double _hmz = ecalEndcapParams.z_0 + ecalEndcapParams.delta_z ;
+	  
+	  if( std::abs(mcp.getPDG()) == 13 ){
+	    
+	    _hmr = hcalBarrelParams.r_inner + hcalBarrelParams.delta_r ;
+	    _hmz = hcalEndcapParams.z_0 + hcalEndcapParams.delta_z;
+	    
+	  }
+	  
+	  k4GaudiCED::drawHelix( bField , charge, x, y, z,
+				 px, py, pz, ml , size*scaleLineThickness , 0x7af774  ,
+				 0.0,  _hmr ,
+				 _hmz,  myColID + mcp.id().index   );
+	  
         } else { // neutral
-            int color  ;
-            double length, yokeR, yokeZ;
-            switch(  std::abs(mcp.getPDG() )  ){
-                //refactored length calculation (T. Quast 7 Aug 15)
-                case 22:
-                    color = 0xf9f920;          // photon
-                    length = calculateTrackLength(m_ecalBarrelName, m_ecalEndcapName, theDetector, x, y, z, px, py, pz);
-                    break ;
-                case 12:  case 14: case 16: // neutrino
-                    color =  0xdddddd  ;
-                    yokeR = getYokeExtent(theDetector)[0];
-                    yokeZ = getYokeExtent(theDetector)[1];
-                    length = (fabs(pt/pz) > yokeR/yokeZ) ?
-                            yokeR * sqrt(1. + pow(pz/pt,2)):
-                            yokeZ * sqrt(1. + pow(pt/pz,2));
-                    break ;
-                default:
-                    color = 0xb900de  ;        // neutral hadron
-                    length = calculateTrackLength(m_hcalBarrelName, m_hcalEndcapName, theDetector, x, y, z, px, py, pz);
-            }
-            //tracks with vertex outside the according calorimeter are not drawn, length is passed as 0
-            ced_line_ID( x , y , z ,
-                        x + length*px/p ,  y + length*py/p ,  z + length*pz/p ,
-			 layer  , size, color,   myColID + mcp.id().index  );
+	  int color  ;
+	  double length, yokeR, yokeZ;
+	  
+	  auto ext =  getYokeExtent(theDetector) ;
+	  
+	  switch(  std::abs(mcp.getPDG() )  ){
+	    //refactored length calculation (T. Quast 7 Aug 15)
+	  case 22:
+	    color = 0xf9f920;          // photon
+	    length = calculateTrackLength( ecalBarrelParams, ecalEndcapParams, x, y, z, px, py, pz);
+	    break ;
+	  case 12:  case 14: case 16: // neutrino
+	    color =  0xdddddd  ;
+	    yokeR = ext[0];
+	    yokeZ = ext[1];
+	    length = (fabs(pt/pz) > yokeR/yokeZ) ?
+	      yokeR * sqrt(1. + pow(pz/pt,2)):
+	      yokeZ * sqrt(1. + pow(pt/pz,2));
+	    break ;
+	  default:
+	    color = 0xb900de  ;        // neutral hadron
+	    length = calculateTrackLength( hcalBarrelParams, hcalEndcapParams, x, y, z, px, py, pz);
+	  }
+	  //tracks with vertex outside the according calorimeter are not drawn, length is passed as 0
+	  ced_line_ID( x , y , z ,
+		       x + length*px/p ,  y + length*py/p ,  z + length*pz/p ,
+		       layer  , size, color,   myColID + mcp.id().index  );
         }
     }
 

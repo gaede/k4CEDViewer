@@ -89,14 +89,14 @@ namespace k4ced {
 
   CalorimeterDrawParams getCalorimeterParameters(dd4hep::Detector& theDetector, std::string name, bool selfCall=false );
  
-  double calculateTrackLength(std::string barrelName, std::string endcapName, dd4hep::Detector& theDetector, double x, double y, double z, double px, double py, double pz, double rel_X0= 0.5) ;
+  double calculateTrackLength( const CalorimeterDrawParams& barrel, const CalorimeterDrawParams& endcap, double x, double y, double z, double px, double py, double pz, double rel_X0= 0.5) ;
 
 
 //get the outer extents of the tracker
-  double* getTrackerExtent(dd4hep::Detector& theDetector) ;
+   std::array<double, 2> getTrackerExtent(dd4hep::Detector& theDetector) ;
 
 //get the outer extents of the yoke
-  double* getYokeExtent(dd4hep::Detector& theDetector) ;
+  std::array<double, 2> getYokeExtent(dd4hep::Detector& theDetector) ;
 
 } /// end namespace
 
