@@ -144,20 +144,20 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
 	  
 	//maximal extension of all charged tracks - use ecal for all but muons
 	  
-	double _hmr = ecalBarrelParams.r_inner + ecalBarrelParams.delta_r ; 
-	double _hmz = ecalEndcapParams.z_0 + ecalEndcapParams.delta_z ;
+	double hmr = ecalBarrelParams.r_inner + ecalBarrelParams.delta_r ; 
+	double hmz = ecalEndcapParams.z_0 + ecalEndcapParams.delta_z ;
 	  
 	if( std::abs(mcp.getPDG()) == 13 ){
 	    
-	  _hmr = hcalBarrelParams.r_inner + hcalBarrelParams.delta_r ;
-	  _hmz = hcalEndcapParams.z_0 + hcalEndcapParams.delta_z;
+	  hmr = hcalBarrelParams.r_inner + hcalBarrelParams.delta_r ;
+	  hmz = hcalEndcapParams.z_0 + hcalEndcapParams.delta_z;
 	    
 	}
 	  
 	k4GaudiCED::drawHelix( bField , charge, x, y, z,
 			       px, py, pz, layer , size , 0x7af774  ,
-			       0.0,  _hmr ,
-			       _hmz,  myColID + mcp.id().index   );
+			       0.0,  hmr ,
+			       hmz,  myColID + mcp.id().index   );
 	  
       } else { // neutral
 	int color  ;

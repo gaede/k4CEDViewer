@@ -24,6 +24,7 @@ from k4FWCore import IOSvc
 from Configurables import (GeoSvc,
                            DrawDetector,
                            DrawMCParticles,
+                           DrawTracks,
                            EventDataSvc
                            )
 
@@ -61,6 +62,10 @@ algList.append(  DrawDetector("draw_detector", drawSurfaces=False ))
 
 
 algList.append(  DrawMCParticles("draw_mcps", colName = "MCParticles" , layer=0 , size=3 ) )
+
+algList.append(  DrawTracks("draw_trks", colName = "MarlinTrkTracks" , marker=0, layer=5 , size=3, drawHelixForTracks=0 ) )
+
+algList.append(  DrawTracks("draw_sitrks", colName = "SiTracksCT" , marker=0, layer=7 , size=5, drawHelixForTracks=0 ) )
 
 
 ApplicationMgr(TopAlg=algList,
