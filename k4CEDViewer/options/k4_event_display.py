@@ -20,8 +20,9 @@ from Gaudi.Configuration import (DEBUG, INFO , WARNING)
 from k4FWCore import ApplicationMgr
 from k4FWCore.parseArgs import parser
 from k4FWCore import IOSvc
-#from Configurables import ExampleConsumer, DrawMCParticles
+
 from Configurables import (GeoSvc,
+                           DrawDetector,
                            DrawMCParticles,
                            EventDataSvc
                            )
@@ -53,6 +54,10 @@ geoSvc.detectors = [compact_file]
 geoSvc.OutputLevel = INFO
 geoSvc.EnableGeant4Geo = False
 svcList.append(geoSvc)
+
+
+#algList.append(  DrawDetector("draw_detector", drawSurfaces=True, drawDetailed=["SiliconTrackerBarrel","SiliconTrackerEndcap"] ) )
+algList.append(  DrawDetector("draw_detector", drawSurfaces=False ))
 
 
 algList.append(  DrawMCParticles("draw_mcps", colName = "MCParticles" , layer=0 , size=3 ) )

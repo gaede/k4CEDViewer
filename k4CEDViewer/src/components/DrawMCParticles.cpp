@@ -78,16 +78,11 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
 
     
 
-    bool _surfaces = false ;
-
-    //------------------------
-
-    k4GaudiCED::drawDD4hepDetector(theDetector, _surfaces, {} ) ;
-
     //------------------------
     // get some calorimeter parameters for drawing the lines and helices
 
     // could directly get the calorimeter in question - yet this would need some error handling ....
+
     // dd4hep::DetElement ecalBarrel =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL |  dd4hep::DetType::ELECTROMAGNETIC ), dd4hep::DetType::AUXILIARY )[0] ;
     // dd4hep::DetElement ecalEndcap =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::ENDCAP |  dd4hep::DetType::ELECTROMAGNETIC ), dd4hep::DetType::AUXILIARY )[0] ;
     // dd4hep::DetElement hcalBarrel =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL |  dd4hep::DetType::HADRONIC ), dd4hep::DetType::AUXILIARY )[0] ;
