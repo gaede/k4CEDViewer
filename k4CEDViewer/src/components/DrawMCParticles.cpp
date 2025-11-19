@@ -43,7 +43,11 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
   Gaudi::Property<int> layer{ this, "layer" , 0 , "layer to draw MCParticles " };
   Gaudi::Property<int> marker{this, "marker", 0 , "marker for drawming MCParticles " };
   Gaudi::Property<int> size{  this, "size"  , 0 , "size for drawning  MCParticles " };
+  Gaudi::Property<double> mcpECut{  this, "ECut"  , 0.01 , "energy cut for MCParticles (in GeV) " };
+  Gaudi::Property<bool> usingParticleGun{  this, "isParticleGun"  , false , " should be true of file contains events produced with a gun" };
+  Gaudi::Property<bool> drawMCParticlesCreatedInSimulation{  this, "drawMCParticlesCreatedInSimulation"  , false , "draw particles created in simulation ? " };
 
+  
   Gaudi::Property<std::string> m_ecalBarrelName{this, "EcalBarrelName", "EcalBarrel" , "name of ecal barrel detector "};
   Gaudi::Property<std::string> m_ecalEndcapName{this, "EcalEndcapName", "EcalEndcap" , "name of ecal endcap detector "};
   Gaudi::Property<std::string> m_hcalBarrelName{this, "HcalBarrelName", "HcalBarrel" , "name of hcal barrel detector "};
@@ -74,14 +78,7 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
     dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
 
     
-    // define some consts that should be made parameters ...
-    bool usingParticleGun = false; 
-    bool drawMCParticlesCreatedInSimulation = false ;
-    double mcpECut = 0.01 ;
-    double _helix_max_r = 2000. ;
-    double _helix_max_z = 2500. ;
 
-    float scaleLineThickness =1. ;
     bool _surfaces = false ;
 
     //------------------------
@@ -104,7 +101,6 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
     CalorimeterDrawParams hcalEndcapParams =  getCalorimeterParameters(theDetector, m_hcalEndcapName) ;
      
     
-    
 
     //-----------------------
     for( edm4hep::MCParticle mcp : col ){
@@ -125,9 +121,7 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
 		 << endmsg ;
 	
 
-	
-//        k4GaudiCED::add_layer_description( m_colName.value() , layer );
-        k4GaudiCED::add_layer_description( inputLocations(0)[0] , layer );
+	k4GaudiCED::add_layer_description( inputLocations(0)[0] , layer );
 
         double px = mcp.getMomentum()[0];
         double py = mcp.getMomentum()[1];
@@ -163,7 +157,7 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
 	  }
 	  
 	  k4GaudiCED::drawHelix( bField , charge, x, y, z,
-				 px, py, pz, ml , size*scaleLineThickness , 0x7af774  ,
+				 px, py, pz, ml , size , 0x7af774  ,
 				 0.0,  _hmr ,
 				 _hmz,  myColID + mcp.id().index   );
 	  

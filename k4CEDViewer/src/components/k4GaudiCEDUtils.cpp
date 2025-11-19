@@ -172,7 +172,7 @@ namespace k4ced {
       try{
 	yokeGeo = yoke.extension<dd4hep::rec::LayeredCalorimeterData>() ;
       } catch(std::runtime_error& e){
-	info() <<  " cannot get detector data for  " << detName << " cannot draw ;-( "<< endmsg ;
+	debug() <<  " cannot get detector data for  " << detName << " cannot draw ;-( "<< endmsg ;
 	extent0 = extent1 = 0;
 	return { extent0, extent1 } ;
       }
