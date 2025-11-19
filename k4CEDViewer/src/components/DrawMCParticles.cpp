@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-#define MCPARTICLE_LAYER 7
 
 #include "edm4hep/MCParticleCollection.h"
 #include "k4FWCore/Consumer.h"
@@ -41,8 +40,7 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
   std::vector<DrawParameters> _drawParameters ;
   
   Gaudi::Property<int> layer{ this, "layer" , 0 , "layer to draw MCParticles " };
-  Gaudi::Property<int> marker{this, "marker", 0 , "marker for drawming MCParticles " };
-  Gaudi::Property<int> size{  this, "size"  , 0 , "size for drawning  MCParticles " };
+  Gaudi::Property<int> size{  this, "size"  , 3 , "size for drawning  MCParticles " };
   Gaudi::Property<double> mcpECut{  this, "ECut"  , 0.01 , "energy cut for MCParticles (in GeV) " };
   Gaudi::Property<bool> usingParticleGun{  this, "isParticleGun"  , false , " should be true of file contains events produced with a gun" };
   Gaudi::Property<bool> drawMCParticlesCreatedInSimulation{  this, "drawMCParticlesCreatedInSimulation"  , false , "draw particles created in simulation ? " };
@@ -68,7 +66,8 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
 
 
     info()  <<  " +++++++  drawing MCParticle collection with " <<  col.size()  << " particles "
-	    << " outputLevel = " <<   k4ced::GlobalLog::instance().level()  << endmsg ;
+	    << " outputLevel = " <<   k4ced::GlobalLog::instance().level()
+	    << endmsg ;
 
     unsigned myColID = PickingHandler::instance().colID() * k4ced::IDFactor ;
 
@@ -88,6 +87,7 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
     //------------------------
     // get some calorimeter parameters for drawing the lines and helices
 
+    // could directly get the calorimeter in question - yet this would need some error handling ....
     // dd4hep::DetElement ecalBarrel =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL |  dd4hep::DetType::ELECTROMAGNETIC ), dd4hep::DetType::AUXILIARY )[0] ;
     // dd4hep::DetElement ecalEndcap =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::ENDCAP |  dd4hep::DetType::ELECTROMAGNETIC ), dd4hep::DetType::AUXILIARY )[0] ;
     // dd4hep::DetElement hcalBarrel =  theDetector.detectors( (dd4hep::DetType::CALORIMETER | dd4hep::DetType::BARREL |  dd4hep::DetType::HADRONIC ), dd4hep::DetType::AUXILIARY )[0] ;
@@ -106,90 +106,93 @@ struct DrawMCParticles final : k4FWCore::Consumer<void(const edm4hep::MCParticle
     for( edm4hep::MCParticle mcp : col ){
 
       float charge = mcp.getCharge ();
-        if(mcp.getGeneratorStatus() != 1 // do not draw unstable particles
-           && usingParticleGun == false  // unless we are in particleGun mode
-           && !(drawMCParticlesCreatedInSimulation && mcp.isCreatedInSimulation()) // or we want to draw particles created in the simulation
+
+      if(mcp.getGeneratorStatus() != 1 // do not draw unstable particles
+
+	 && usingParticleGun == false  // unless we are in particleGun mode
+
+	 && !(drawMCParticlesCreatedInSimulation && mcp.isCreatedInSimulation()) // or we want to draw particles created in the simulation
         ) {
-            continue;
-        }
-        if ( mcp.getEnergy() < mcpECut )
-            continue ;         
+	continue;
+      }
 
-        debug()  << "  drawing MCParticle pdg "
-		 << mcp.getPDG()
-		 << " genstat: " << mcp.getGeneratorStatus()
-		 << endmsg ;
-	
-
-	k4GaudiCED::add_layer_description( inputLocations(0)[0] , layer );
-
-        double px = mcp.getMomentum()[0];
-        double py = mcp.getMomentum()[1];
-        double pz = mcp.getMomentum()[2];
-        double pt = sqrt(pow(px,2)+pow(py,2));
-        double p = sqrt(pow(pt,2)+pow(pz,2));
-        double x = mcp.getVertex()[0] ;
-        double y = mcp.getVertex()[1] ;
-        double z = mcp.getVertex()[2] ;
-
-        if( std::fabs( charge ) > 0.0001  ) {
+      if ( mcp.getEnergy() < mcpECut )
+	continue ;         
+      
+      debug()  << "  drawing MCParticle pdg "
+	       << mcp.getPDG()
+	       << " genstat: " << mcp.getGeneratorStatus()
+	       << endmsg ;
+      
+      
+      k4GaudiCED::add_layer_description( inputLocations(0)[0] , layer );
+      
+      double px = mcp.getMomentum()[0];
+      double py = mcp.getMomentum()[1];
+      double pz = mcp.getMomentum()[2];
+      double pt = sqrt(pow(px,2)+pow(py,2));
+      double p = sqrt(pow(pt,2)+pow(pz,2));
+      double x = mcp.getVertex()[0] ;
+      double y = mcp.getVertex()[1] ;
+      double z = mcp.getVertex()[2] ;
+      
+      if( std::fabs( charge ) > 0.0001  ) {
 	  
-	  std::vector<double> bFieldVector(3) ;
-	  theDetector.field().combinedMagnetic(dd4hep::Position(0,0,0), &bFieldVector[0]) ;
-	  double bField = bFieldVector[2]  / dd4hep::tesla;
+	std::vector<double> bFieldVector(3) ;
+	theDetector.field().combinedMagnetic(dd4hep::Position(0,0,0), &bFieldVector[0]) ;
+	double bField = bFieldVector[2]  / dd4hep::tesla;
 	  
-	  debug() << "  drawing MCParticle helix for p_t "
-		  << sqrt(px*px+py*py)
-		  << endmsg ;
+	debug() << "  drawing MCParticle helix for p_t "
+		<< sqrt(px*px+py*py)
+		<< endmsg ;
 	  
-	  const int ml = marker | ( layer << CED_LAYER_SHIFT ) ;
 	  
-	  //maximal extension of all charged tracks - use ecal for all but muons
+	//maximal extension of all charged tracks - use ecal for all but muons
 	  
-	  double _hmr = ecalBarrelParams.r_inner + ecalBarrelParams.delta_r ; 
-	  double _hmz = ecalEndcapParams.z_0 + ecalEndcapParams.delta_z ;
+	double _hmr = ecalBarrelParams.r_inner + ecalBarrelParams.delta_r ; 
+	double _hmz = ecalEndcapParams.z_0 + ecalEndcapParams.delta_z ;
 	  
-	  if( std::abs(mcp.getPDG()) == 13 ){
+	if( std::abs(mcp.getPDG()) == 13 ){
 	    
-	    _hmr = hcalBarrelParams.r_inner + hcalBarrelParams.delta_r ;
-	    _hmz = hcalEndcapParams.z_0 + hcalEndcapParams.delta_z;
+	  _hmr = hcalBarrelParams.r_inner + hcalBarrelParams.delta_r ;
+	  _hmz = hcalEndcapParams.z_0 + hcalEndcapParams.delta_z;
 	    
-	  }
+	}
 	  
-	  k4GaudiCED::drawHelix( bField , charge, x, y, z,
-				 px, py, pz, ml , size , 0x7af774  ,
-				 0.0,  _hmr ,
-				 _hmz,  myColID + mcp.id().index   );
+	k4GaudiCED::drawHelix( bField , charge, x, y, z,
+			       px, py, pz, layer , size , 0x7af774  ,
+			       0.0,  _hmr ,
+			       _hmz,  myColID + mcp.id().index   );
 	  
-        } else { // neutral
-	  int color  ;
-	  double length, yokeR, yokeZ;
+      } else { // neutral
+	int color  ;
+	double length, yokeR, yokeZ;
 	  
-	  auto ext =  getYokeExtent(theDetector) ;
+	auto ext =  getYokeExtent(theDetector) ;
 	  
-	  switch(  std::abs(mcp.getPDG() )  ){
-	    //refactored length calculation (T. Quast 7 Aug 15)
-	  case 22:
-	    color = 0xf9f920;          // photon
-	    length = calculateTrackLength( ecalBarrelParams, ecalEndcapParams, x, y, z, px, py, pz);
-	    break ;
-	  case 12:  case 14: case 16: // neutrino
-	    color =  0xdddddd  ;
-	    yokeR = ext[0];
-	    yokeZ = ext[1];
-	    length = (fabs(pt/pz) > yokeR/yokeZ) ?
-	      yokeR * sqrt(1. + pow(pz/pt,2)):
-	      yokeZ * sqrt(1. + pow(pt/pz,2));
-	    break ;
-	  default:
-	    color = 0xb900de  ;        // neutral hadron
-	    length = calculateTrackLength( hcalBarrelParams, hcalEndcapParams, x, y, z, px, py, pz);
-	  }
-	  //tracks with vertex outside the according calorimeter are not drawn, length is passed as 0
-	  ced_line_ID( x , y , z ,
-		       x + length*px/p ,  y + length*py/p ,  z + length*pz/p ,
-		       layer  , size, color,   myColID + mcp.id().index  );
-        }
+	switch(  std::abs(mcp.getPDG() )  ){
+	  //refactored length calculation (T. Quast 7 Aug 15)
+	case 22:
+	  color = 0xf9f920;          // photon
+	  length = calculateTrackLength( ecalBarrelParams, ecalEndcapParams, x, y, z, px, py, pz);
+	  break ;
+	case 12:  case 14: case 16: // neutrino
+	  color =  0xdddddd  ;
+	  yokeR = ext[0];
+	  yokeZ = ext[1];
+	  length = (fabs(pt/pz) > yokeR/yokeZ) ?
+	    yokeR * sqrt(1. + pow(pz/pt,2)):
+	    yokeZ * sqrt(1. + pow(pt/pz,2));
+	  break ;
+	default:
+	  color = 0xb900de  ;        // neutral hadron
+	  length = calculateTrackLength( hcalBarrelParams, hcalEndcapParams, x, y, z, px, py, pz);
+	}
+	//tracks with vertex outside the according calorimeter are not drawn, length is passed as 0
+	ced_line_ID( x , y , z ,
+		     x + length*px/p ,  y + length*py/p ,  z + length*pz/p ,
+		     layer  , size, color,   myColID + mcp.id().index  );
+      }
     }
 
     

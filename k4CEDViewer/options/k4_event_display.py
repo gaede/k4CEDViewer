@@ -55,7 +55,7 @@ geoSvc.EnableGeant4Geo = False
 svcList.append(geoSvc)
 
 
-algList.append(  DrawMCParticles("draw_mcps", colName = "MCParticles" , layer=4 , marker=3, size=3 ) )
+algList.append(  DrawMCParticles("draw_mcps", colName = "MCParticles" , layer=0 , size=3 ) )
 
 
 ApplicationMgr(TopAlg=algList,
