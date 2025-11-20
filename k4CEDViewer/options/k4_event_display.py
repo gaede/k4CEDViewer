@@ -25,6 +25,8 @@ from Configurables import (GeoSvc,
                            DrawDetector,
                            DrawMCParticles,
                            DrawTracks,
+                           DrawSimTrackerHits,
+                           DrawSimCalorimeterHits,
                            EventDataSvc
                            )
 
@@ -61,11 +63,39 @@ svcList.append(geoSvc)
 algList.append(  DrawDetector("draw_detector", drawSurfaces=False ))
 
 
-algList.append(  DrawMCParticles("draw_mcps", colName = "MCParticles" , layer=0 , size=3 ) )
+algList.append( DrawMCParticles("draw_mcps", colName = "MCParticles" , layer=0 , size=3 ) )
 
-algList.append(  DrawTracks("draw_trks", colName = "MarlinTrkTracks" , marker=0, layer=5 , size=3, drawHelixForTracks=0 ) )
+algList.append( DrawTracks("draw_trks", colName = "MarlinTrkTracks" , marker=0, layer=5 , size=3, drawHelixForTracks=0 , colorScheme=7) )
 
-algList.append(  DrawTracks("draw_sitrks", colName = "SiTracksCT" , marker=0, layer=7 , size=5, drawHelixForTracks=0 ) )
+algList.append( DrawTracks("draw_sitrks", colName = "SiTracksCT" , marker=0, layer=7 , size=5, drawHelixForTracks=0 ) )
+
+algList.append(
+    DrawSimTrackerHits("draw_simths",
+                       colNames = [
+                           "InnerTrackerBarrelCollection",
+                           "InnerTrackerEndcapCollection",
+                           "SETCollection","TPCCollection",
+                           "TPCLowPtCollection",
+                           "TPCSpacePointCollection",
+                           "VertexBarrelCollection",
+                           "VertexEndcapCollection"] , layer=1 , size=2 ) )
+
+algList.append(
+    DrawSimCalorimeterHits("draw_simchs",
+                           colNames = [
+                               "ECalBarrelSiHitsEven",
+                               "ECalBarrelSiHitsOdd",  
+                               "EcalEndcapRingCollection",
+                               "ECalEndcapSiHitsEven",
+                               "ECalEndcapSiHitsOdd",  
+                               "HcalBarrelRegCollection", 
+                               "HcalEndcapRingCollection",
+                               "HcalEndcapsCollection",
+                               "LumiCalCollection", 
+                               "YokeBarrelCollection",    
+                               "YokeEndcapsCollection",  
+                           ] , layer=2 , size=2 ) )
+
 
 
 ApplicationMgr(TopAlg=algList,

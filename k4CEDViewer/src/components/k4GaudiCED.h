@@ -41,6 +41,8 @@ namespace k4ced{
   typedef std::function<void(unsigned)> printfun ;
   typedef std::map<unsigned, printfun> PickingMap ;
 
+
+  
   /// helper class for printing picked objects from EDM4hep collections
 
   template <class T>
