@@ -1,30 +1,24 @@
-# k4-project-template
+# k4CEDViewer
 
+Port of the CEDViewer package from iLCSoft to use Gaudi and EDM4hep (replacing Marlin and LCIO).
 
-This repository can be a starting point and template for projects using the Key4hep software stack, in particular those writing Gaudi algorithms.
-To use it, instead of forking it, go to Github and click `Use this template` at the top right.
-
+### this is WIP ...
 
 ## Dependencies
 
-* ROOT
+* CED
 
-* PODIO
+* PODIO/EDM4hep
 
 * Gaudi
 
 * k4FWCore
 
-## This repository as a template
-
-If you belong to the Key4hep organization, then it is possible to use this
-repository as a template for your new project, otherwise you can simply fork it
-and follow the next steps.
 
 
 ### Compilation
 
-Run, from the `k4-project-template` directory:
+Run, from the `k4CEDViewer` directory:
 
 ``` bash
 source /cvmfs/sw.hsf.org/key4hep/setup.sh
@@ -53,12 +47,12 @@ git checkout v0.5.0
 This is because the releases are only built with tagged versions of the
 packages. With the nightlies this repository should always work; if it doesn't
 please [open an
-issue](https://github.com/key4hep/k4-project-template/issues/new/choose).
+issue](https://github.com/key4hep/k4CEDViewer/issues/new/choose).
 
 ### Execute Examples
 
-Make sure that `k4-project-template/install/lib` and
-`k4-project-template/install/python` are in `LD_LIBRARY_PATH` and `PYTHONPATH`
+Make sure that `k4CEDViewer/install/lib` and
+`k4CEDViewer/install/python` are in `LD_LIBRARY_PATH` and `PYTHONPATH`
 respectively (`k4_local_repo` should take care of this). If they are not, they
 can be added by running:
 ``` bash
@@ -68,23 +62,11 @@ export PYTHONPATH=$PWD/install/python:$PYTHONPATH
 
 and then run the examples like this:
 
-``` bash
-k4run k4CEDViewer/options/createHelloWorld.py
-k4run k4CEDViewer/options/createExampleEventData.py
-```
-
-### Changing the name
-
-Typically for a new project we would like to use a different name than
-k4CEDViewer. The change of names can be done quickly running these
-commands (change `k4CoolProject` to its name):
 
 ``` bash
-mv k4CEDViewer k4CoolProject
-git ls-files | xargs sed -i 's/k4CEDViewer/k4CoolProject/g'
+k4run ./k4CEDViewer/options/k4_event_display.py --Input=../ILDConfig/StandardConfig/production/E250-SetA.P4f_ww_h.Gwhizard-2_8_5.eL.pR.I500066.1_REC.edm4hep.root --compactFile=$k4geo_DIR/FCCee/ILD_FCCee/compact/ILD_FCCee_v01/ILD_FCCee_v01.xml --log-level=info
 ```
 
-After this, your project should be ready to run
 
 ### Continuous integration (CI) in forks
 If this repository is forked instead of used as a template, CI will not work by
