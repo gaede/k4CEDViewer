@@ -19,6 +19,7 @@
 
 
 #include "edm4hep/TrackerHit3DCollection.h"
+#include "edm4hep/TrackerHitPlaneCollection.h"
 #include "edm4hep/MCParticle.h"
 #include "k4FWCore/Consumer.h"
 #include "k4GaudiCED.h"
@@ -34,13 +35,14 @@
 using namespace k4ced ;
 
 
-struct DrawTrackerHits final : k4FWCore::Consumer<void(const std::vector<const edm4hep::TrackerHit3DCollection*>&)> {
+struct DrawTrackerHits final : k4FWCore::Consumer<void(const std::vector<const edm4hep::TrackerHit3DCollection*>&,
+						       const std::vector<const edm4hep::TrackerHitPlaneCollection*>&)> {
   DrawTrackerHits(const std::string& name, ISvcLocator* svcLoc)
-    : Consumer(name, svcLoc,  KeyValues("colNames", {{"TPCTrackerHits"}}) ) {
-
+    : Consumer(name, svcLoc,  { KeyValues("colNamesTH3D", {"TPCTrackerHits"} ), KeyValues("colNamesTHPlane", {"VertexBarrelTrackerHits","SETTrackerHits"} ) }) {
+    
     k4GaudiCED::init(this) ;
   }
-
+  
   
   Gaudi::Property<int> layer{ this, "layer" , 11 , "layer to draw TrackerHits " };
   Gaudi::Property<int> size{  this, "size"  , 2 , "size for drawning  TrackerHits " };
@@ -50,7 +52,7 @@ struct DrawTrackerHits final : k4FWCore::Consumer<void(const std::vector<const e
   
 //===========================================================================================
 
-  void operator()(const std::vector<const edm4hep::TrackerHit3DCollection*>& collections) const override {
+  void operator()(const std::vector<const edm4hep::TrackerHit3DCollection*>& cols3D, const std::vector<const edm4hep::TrackerHitPlaneCollection*>& colsPlane) const override {
     
 
 
@@ -66,14 +68,22 @@ struct DrawTrackerHits final : k4FWCore::Consumer<void(const std::vector<const e
       sstr <<  inputLocations(0)[i] << ", " ;
       info() << "    " << inputLocations(0)[i] << "\n" ; 
     }
+    for(unsigned i=0 ; i< inputLocations(1).size() ; ++i){
+
+      sstr <<  inputLocations(1)[i] << ", " ;
+      info() << "    " << inputLocations(1)[i] << "\n" ; 
+    }
 
     info() << endmsg ;
 
+    
     //-----------------------
 
     k4GaudiCED::add_layer_description( sstr.str(), layer);
 
-    for( const auto* col : collections ) {
+    for( const auto* col : cols3D ) {
+
+//      debug() << "  will draw these hits : " << *col << endmsg ;
 
       unsigned myColID = PickingHandler::instance().colID() * k4ced::IDFactor ;
       printfun f =  PrintEDM4hep<edm4hep::TrackerHit3DCollection>( *col )  ;
@@ -91,9 +101,31 @@ struct DrawTrackerHits final : k4FWCore::Consumer<void(const std::vector<const e
 		      marker,layer, size , color, id ) ;
       }
     }
+
+    for( const auto* col : colsPlane ) {
+
+//      debug() << "  will draw these hits : " << *col << endmsg ;
+
+      unsigned myColID = PickingHandler::instance().colID() * k4ced::IDFactor ;
+      printfun f =  PrintEDM4hep<edm4hep::TrackerHitPlaneCollection>( *col )  ;
+      PickingHandler::instance().registerFunctor( myColID/IDFactor , f ) ;
+      
+      for( int i=0, n=col->size(); i<n ; i++ ){
+	
+	auto h = col->at(i) ;
+	
+	int id =  myColID + h.id().index ;
+	
+	ced_hit_ID( h.getPosition()[0],
+		    h.getPosition()[1],
+		    h.getPosition()[2],
+		    marker,layer, size , color, id ) ;
+      }
+    }
+    
     k4GaudiCED::draw(this, 1 );
   }
-
+      
 };
 
 DECLARE_COMPONENT(DrawTrackerHits)

@@ -122,9 +122,17 @@ algList.append(
 
 algList.append(
     DrawTrackerHits("draw_ths",
-                    colNames = [
+                    colNamesTH3D = [
                         "TPCTrackerHits"
-                    ] , layer=11 , size=4 ) )
+                    ],
+                    colNamesTHPlane = [
+                        "InnerTrackerBarrelHits",
+                        "InnerTrackerEndcapHits",
+                        "SETTrackerHits",
+                        "VertexBarrelTrackerHits",
+                        "VertexEndcapTrackerHits"
+                    ],
+                    layer=11 , size=4 ) )
 
 
 ApplicationMgr(TopAlg=algList,
