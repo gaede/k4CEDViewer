@@ -27,7 +27,9 @@ from Configurables import (GeoSvc,
                            DrawTracks,
                            DrawReconstructedParticles,
                            DrawSimTrackerHits,
+                           DrawTrackerHits,
                            DrawSimCalorimeterHits,
+                           DrawCalorimeterHits,
                            EventDataSvc
                            )
 
@@ -60,9 +62,9 @@ geoSvc.EnableGeant4Geo = False
 svcList.append(geoSvc)
 
 
-#algList.append(  DrawDetector("draw_detector", drawSurfaces=True, drawDetailed=["SiliconTrackerBarrel","SiliconTrackerEndcap"] ) )
 algList.append(  DrawDetector("draw_detector", drawSurfaces=False ))
 
+#algList.append(  DrawDetector("draw_detector", drawSurfaces=True, drawDetailed=["SiliconTrackerBarrel","SiliconTrackerEndcap"] ) )
 
 algList.append( DrawMCParticles("draw_mcps", colName = "MCParticles" , layer=0 , size=3 ) )
 
@@ -70,7 +72,10 @@ algList.append( DrawTracks("draw_trks", colName = "MarlinTrkTracks" , marker=0, 
 
 algList.append( DrawTracks("draw_sitrks", colName = "SiTracksCT" , marker=0, layer=7 , size=5, drawHelixForTracks=0 ) )
 
-algList.append( DrawReconstructedParticles("draw_pfos", colName = "PandoraPFOs", drawHelixForPFOs=0, ColorByEnergy=True, ColorByEnergyAuto=True, DrawEllipsoidForPFOClusters=True ) )
+algList.append( DrawReconstructedParticles("draw_pfos", colName = "PandoraPFOs", drawHelixForPFOs=0 ) )
+
+# --- test ellipses (for DSTs)
+##algList.append( DrawReconstructedParticles("draw_pfos", colName = "PandoraPFOs", drawHelixForPFOs=0, ColorByEnergy=True, ColorByEnergyAuto=True, DrawEllipsoidForPFOClusters=True ) )
 
 
 algList.append(
@@ -100,6 +105,26 @@ algList.append(
                                "YokeEndcapsCollection",  
                            ] , layer=2 , size=2 ) )
 
+algList.append(
+    DrawCalorimeterHits("draw_chs",
+                        colNames = [
+                            "EcalBarrelCollectionGapHits",
+                            "EcalBarrelCollectionRec",
+                            "EcalEndcapRingCollectionRec",
+                            "EcalEndcapsCollectionGapHits",
+                            "EcalEndcapsCollectionRec",
+                            "HcalBarrelCollectionRec", 
+                            "HcalEndcapRingCollectionRec",
+                            "HcalEndcapsCollectionRec",  
+                            "LCAL",
+                            "MUON"
+                        ] , layer=12 , size=4 ) )
+
+algList.append(
+    DrawTrackerHits("draw_ths",
+                    colNames = [
+                        "TPCTrackerHits"
+                    ] , layer=11 , size=4 ) )
 
 
 ApplicationMgr(TopAlg=algList,
