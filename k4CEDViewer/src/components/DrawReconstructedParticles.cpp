@@ -66,26 +66,26 @@ struct DrawReconstructedParticles final : k4FWCore::Consumer<void(const edm4hep:
 
 
 
-  Gaudi::Property<bool> _drawEllipsoidForPFOClusters{ this, "DrawEllipsoidForPFOClusters" , false, 
+  Gaudi::Property<bool> drawEllipsoidForPFOClusters{ this, "DrawEllipsoidForPFOClusters" , false, 
 						      "draw ellipsoids for clusters" };
 
-  Gaudi::Property<bool> _colorEnergy{ this, "ColorByEnergy" , false, 
+  Gaudi::Property<bool> colorEnergy{ this, "ColorByEnergy" , false, 
 				      "color recunstructed particle by energy" };
 
-  Gaudi::Property<bool> _colorEnergyAuto{ this, "ColorByEnergyAuto" , false, 
+  Gaudi::Property<bool> colorEnergyAuto{ this, "ColorByEnergyAuto" , false, 
 				      "Automatically adjust event by event the blue to min energy and red to max energy of event" };
   
-  Gaudi::Property<double> _colorEnergyMin{ this, "ColorByEnergyMin" , 0.,
+  Gaudi::Property<double> colorEnergyMin{ this, "ColorByEnergyMin" , 0.,
 					   "Minimal value for energy which will be represented as blue" };
   
-  Gaudi::Property<double> _colorEnergyMax{ this, "ColorByEnergyMax" , 10., 
+  Gaudi::Property<double> colorEnergyMax{ this, "ColorByEnergyMax" , 10., 
 					   "Maximal value for energy which will be represented as red" };
   
-  Gaudi::Property<double> _colorEnergySaturation{ this, "ColorByEnergySaturation" , 0.8, 
+  Gaudi::Property<double> colorEnergySaturation{ this, "ColorByEnergySaturation" , 0.8, 
 						  "Hue value that will be used to determine the pallete" };
   
   
-  Gaudi::Property<double> _colorEnergyValue{ this, "ColorByEnergyBrightnessn" , 0.8, 
+  Gaudi::Property<double> colorEnergyValue{ this, "ColorByEnergyBrightnessn" , 0.8, 
 					     "Brigtness value that will be used to determine the pallete" };
 
   
@@ -173,11 +173,11 @@ struct DrawReconstructedParticles final : k4FWCore::Consumer<void(const edm4hep:
       float pz  = (float)part.getMomentum()[2];
 //      int type = (int)part.getType();
       
-      if( _colorEnergy ){
-	if( _colorEnergyAuto ){
-	  color = ColorMap::NumberToTemperature(ene,pEmin,pEmax,_colorEnergySaturation,_colorEnergyValue);
+      if( colorEnergy ){
+	if( colorEnergyAuto ){
+	  color = ColorMap::NumberToTemperature(ene,pEmin,pEmax,colorEnergySaturation,colorEnergyValue);
 	}else{
-	  color = ColorMap::NumberToTemperature(ene,_colorEnergyMin,_colorEnergyMax,_colorEnergySaturation,_colorEnergyValue);
+	  color = ColorMap::NumberToTemperature(ene,colorEnergyMin,colorEnergyMax,colorEnergySaturation,colorEnergyValue);
 	}
       }
 
@@ -211,7 +211,7 @@ struct DrawReconstructedParticles final : k4FWCore::Consumer<void(const edm4hep:
 
           //fg: this code below needs some work: the ellipsoids are flat and they should use the cluster
           //    shower parameters really, also this should probably be drawn in a different layer ....
-          if( _drawEllipsoidForPFOClusters ) {
+          if( drawEllipsoidForPFOClusters ) {
             //refactored Cluster drawing as ellipsoids
             //by Thorben Quast, CERN Summer Student 2015
             //18 August 2015
