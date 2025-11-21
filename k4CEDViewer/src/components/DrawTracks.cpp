@@ -37,7 +37,7 @@ using namespace k4ced ;
 
 struct DrawTracks final : k4FWCore::Consumer<void(const edm4hep::TrackCollection&)> {
   DrawTracks(const std::string& name, ISvcLocator* svcLoc)
-    : Consumer(name, svcLoc,  KeyValue("colName", {"Track"}) ) {
+    : Consumer(name, svcLoc,  KeyValue("colName", {"MarlinTrkTracks"}) ) {
 
     k4GaudiCED::init(this) ;
   }

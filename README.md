@@ -64,6 +64,7 @@ and then run the examples like this:
 
 
 ``` bash
+glced &
 k4run ./k4CEDViewer/options/k4_event_display.py --Input=../ILDConfig/StandardConfig/production/E250-SetA.P4f_ww_h.Gwhizard-2_8_5.eL.pR.I500066.1_REC.edm4hep.root --compactFile=$k4geo_DIR/FCCee/ILD_FCCee/compact/ILD_FCCee_v01/ILD_FCCee_v01.xml --log-level=info
 ```
 
