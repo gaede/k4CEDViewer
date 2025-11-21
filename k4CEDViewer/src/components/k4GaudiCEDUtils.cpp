@@ -184,5 +184,18 @@ namespace k4ced {
     return  { extent0, extent1 } ;
   }
 
+    edm4hep::TrackState getTrackStateAt( const edm4hep::Track& trk , int location ){
+    
+    edm4hep::TrackState ts0 ;
+    
+    for( auto ts : trk.getTrackStates() ){
+
+      if( ts.location == location)
+	return  ts ;
+    }
+    return ts0 ;
+  } 
+  
+
 
 } // end namespace

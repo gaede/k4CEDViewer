@@ -25,6 +25,7 @@ from Configurables import (GeoSvc,
                            DrawDetector,
                            DrawMCParticles,
                            DrawTracks,
+                           DrawReconstructedParticles,
                            DrawSimTrackerHits,
                            DrawSimCalorimeterHits,
                            EventDataSvc
@@ -68,6 +69,9 @@ algList.append( DrawMCParticles("draw_mcps", colName = "MCParticles" , layer=0 ,
 algList.append( DrawTracks("draw_trks", colName = "MarlinTrkTracks" , marker=0, layer=5 , size=3, drawHelixForTracks=0 , colorScheme=7) )
 
 algList.append( DrawTracks("draw_sitrks", colName = "SiTracksCT" , marker=0, layer=7 , size=5, drawHelixForTracks=0 ) )
+
+algList.append( DrawReconstructedParticles("draw_pfos", colName = "PandoraPFOs", drawHelixForPFOs=0, ColorByEnergy=True, ColorByEnergyAuto=True, DrawEllipsoidForPFOClusters=True ) )
+
 
 algList.append(
     DrawSimTrackerHits("draw_simths",

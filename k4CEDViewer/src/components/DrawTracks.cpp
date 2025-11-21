@@ -24,30 +24,13 @@
 #include "k4GaudiCEDUtils.h"
 #include "k4CEDColors.h"
 
+
 #include "DD4hep/DetType.h"
 
 #include <string>
 
 
 typedef std::vector< edm4hep::TrackerHit > TrackerHitVec;
-
-namespace k4ced{
-
-
-  // helper function to get track states
-  edm4hep::TrackState getTrackStateAt( const edm4hep::Track& trk , int location ){
-
-    edm4hep::TrackState ts0 ;
-
-    for( auto ts : trk.getTrackStates() ){
-
-      if( ts.location == location)
-	return  ts ;
-    }
-    return ts0 ;
-  } 
-
-}
 
 using namespace k4ced ;
 
@@ -111,7 +94,8 @@ struct DrawTracks final : k4FWCore::Consumer<void(const edm4hep::TrackCollection
       // -- collect hits from all track segments
       TrackerHitVec tHV ;
       
-      debug() << " -- track has "<< trk.getTracks().size() << " subtracks - will use these for displaying hits "
+      debug() << " -- track has "<< trk.getTracks().size()
+	      << " subtracks - will use these for displaying hits "
 	      << endmsg ;
 
       std::copy( trk.getTrackerHits().begin() , trk.getTrackerHits().end() , std::back_inserter(  tHV ) ) ;
@@ -218,7 +202,7 @@ struct DrawTracks final : k4FWCore::Consumer<void(const edm4hep::TrackCollection
 
 
 
-
 };
 
 DECLARE_COMPONENT(DrawTracks)
+

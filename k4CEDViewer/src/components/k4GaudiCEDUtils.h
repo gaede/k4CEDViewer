@@ -14,6 +14,8 @@
 #include "DD4hep/DD4hepUnits.h" 
 #include "DDRec/DetectorData.h"
 
+#include "edm4hep/Track.h"
+
 // workaround for Gaudi logging
 // #define endmsg std::endl
 
@@ -97,6 +99,13 @@ namespace k4ced {
 
 //get the outer extents of the yoke
   std::array<double, 2> getYokeExtent(dd4hep::Detector& theDetector) ;
+
+
+
+  // helper function to get track states
+  edm4hep::TrackState getTrackStateAt( const edm4hep::Track& trk , int location ) ;
+
+
 
 } /// end namespace
 
