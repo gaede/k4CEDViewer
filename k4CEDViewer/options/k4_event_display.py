@@ -73,9 +73,9 @@ algList.append( DrawTracks("draw_trks", colName = "MarlinTrkTracks" , marker=0, 
 
 algList.append( DrawTracks("draw_sitrks", colName = "SiTracksCT" , marker=0, layer=7 , size=5, drawHelixForTracks=0 ) )
 
-algList.append( DrawClusters("draw_clus", colName = "PandoraClusters", ColorByEnergyAuto=True, DrawEllipsoidForPFOClusters=False ) )
+algList.append( DrawClusters("draw_clus", colName = "PandoraClusters", ColorByEnergy=True, ColorByEnergyAuto=False, DrawEllipsoidForPFOClusters=False ) )
 
-algList.append( DrawReconstructedParticles("draw_pfos", colName = "PandoraPFOs", drawHelixForPFOs=0 ) )
+algList.append( DrawReconstructedParticles("draw_pfos", colName = "PandoraPFOs", drawHelixForPFOs=0, DrawEllipsoidForPFOClusters=False ) )
 
 # --- test ellipses (for DSTs)
 ##algList.append( DrawReconstructedParticles("draw_pfos", colName = "PandoraPFOs", drawHelixForPFOs=0, ColorByEnergy=True, ColorByEnergyAuto=True, DrawEllipsoidForPFOClusters=True ) )

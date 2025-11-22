@@ -36,7 +36,7 @@ using namespace k4ced ;
 
 struct DrawSimCalorimeterHits final : k4FWCore::Consumer<void(const std::vector<const edm4hep::SimCalorimeterHitCollection*>&)> {
   DrawSimCalorimeterHits(const std::string& name, ISvcLocator* svcLoc)
-    : Consumer(name, svcLoc,  KeyValues("colNames", {{"TPCCollection"}}) ) {
+    : Consumer(name, svcLoc,  KeyValues("colNames", {{"EcalBarrelCollection"}}) ) {
 
     k4GaudiCED::init(this) ;
   }
