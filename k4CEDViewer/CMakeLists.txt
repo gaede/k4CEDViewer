@@ -19,13 +19,7 @@ limitations under the License.
 
 file(GLOB _plugin_sources src/components/*.cpp)
 
-#find_package(DD4hep REQUIRED)
-
-
-FIND_PACKAGE( MarlinUtil 1.2 REQUIRED )
-FIND_PACKAGE( CED REQUIRED )
-
-FOREACH( pkg  MarlinUtil CED)
+FOREACH( pkg CED)
     IF( ${pkg}_FOUND )
         INCLUDE_DIRECTORIES( SYSTEM ${${pkg}_INCLUDE_DIRS} )
         LINK_LIBRARIES( ${${pkg}_LIBRARIES} )

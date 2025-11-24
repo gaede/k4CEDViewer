@@ -36,6 +36,9 @@ find_package(Gaudi)
 find_package(ROOT COMPONENTS RIO Tree)
 find_package(EDM4HEP)
 find_package(k4FWCore)
+find_package(DD4hep REQUIRED)
+FIND_PACKAGE(CED REQUIRED)
+
 
 include(cmake/Key4hepConfig.cmake)
 
